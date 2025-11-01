@@ -1,0 +1,35 @@
+{
+  "name": "daktilo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "digital typewriter - a simple blog project",
+  "main": "index.js",
+  "workspaces": [
+    "packages/backend",
+    "packages/frontend-blog",
+    "packages/frontend-admin",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:all": "concurrently -n backend,blog,admin -c green,blue,magenta --kill-others-on-fail \"npm:dev --workspace=backend\" \"npm:dev --workspace=frontend-blog\" \"npm:dev --workspace=frontend-admin\"",
+    "install:all": "npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/furkanssarri/daktilo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/furkanssarri/daktilo/issues"
+  },
+  "homepage": "https://github.com/furkanssarri/daktilo#readme",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
