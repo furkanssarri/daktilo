@@ -19,9 +19,7 @@
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
-    "prisma.config.ts",
     "prisma.config.js",
-    "prisma.config.d.ts",
     "prisma.config.js.map",
     "prisma.config.d.ts.map",
     "dist"
