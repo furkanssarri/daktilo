@@ -7,6 +7,7 @@ import {
   type JwtFromRequestFunction,
 } from "passport-jwt";
 import type { Request } from "express";
+import prisma from "../db/prismaClient.js";
 
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
@@ -27,14 +28,9 @@ passport.use(
       done: (error: any, user?: any) => void,
     ) => {
       try {
-        // TODO: find the user from DB once implemented.
-        // For example: const user = await prisma.user.findUnique({ where: { id: payload.sub } });
-        const user = {
-          id: 1,
-          name: "furkan",
-          payload,
-        };
-
+        const user = await prisma.user.findUnique({
+          where: { id: payload.id },
+        });
         if (user) return done(null, user);
 
         return done(null, false);
