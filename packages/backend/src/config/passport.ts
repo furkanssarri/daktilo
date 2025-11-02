@@ -27,7 +27,7 @@ passport.use(
       done: (error: any, user?: any) => void,
     ) => {
       try {
-        // Here you can fetch the user from your database
+        // TODO: find the user from DB once implemented.
         // For example: const user = await prisma.user.findUnique({ where: { id: payload.sub } });
         const user = {
           id: 1,
