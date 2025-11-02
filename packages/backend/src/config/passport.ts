@@ -9,13 +9,15 @@ import {
 import type { Request } from "express";
 import prisma from "../db/prismaClient.js";
 
-if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in environment variables");
+if (!process.env.JWT_ACCESS_TOKEN_SECRET) {
+  throw new Error(
+    "JWT_ACCESS_TOKEN_SECRET is not defined in environment variables",
+  );
 }
 const jwtOptions: StrategyOptions = {
   jwtFromRequest:
     ExtractJwt.fromAuthHeaderAsBearerToken() as JwtFromRequestFunction,
-  secretOrKey: process.env.JWT_SECRET,
+  secretOrKey: process.env.JWT_ACCESS_TOKEN_SECRET,
   passReqToCallback: true, // allows access to the Express request in the verify callback
 };
 
