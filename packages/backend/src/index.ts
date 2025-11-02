@@ -6,6 +6,7 @@ import "./config/passport.js";
 
 import indexRouter from "./routes/index.js";
 import authRouter from "./routes/auth.js";
+import adminRouter from "./routes/admin.js";
 
 const app = express();
 
@@ -15,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
 app.use("/api/auth/", authRouter);
+
+app.use("/api/admin/", adminRouter);
 app.use("/", indexRouter);
 
 const PORT = process.env.PORT;
