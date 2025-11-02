@@ -1,7 +1,7 @@
 import { error } from "console";
 import { Router } from "express";
 
-import { signup } from "../controllers/authController.js";
+import { loginUser, signup } from "../controllers/authController.js";
 
 const router = Router();
 
@@ -13,5 +13,7 @@ router.get("/signup", (_req, res) => {
     message: "Welcome to the SIGNUP page!",
   });
 });
+
+router.post("/login", loginUser);
 
 export default router;
