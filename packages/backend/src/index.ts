@@ -7,6 +7,7 @@ import "./config/passport.js";
 import indexRouter from "./routes/index.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
+import usersRouter from "./routes/users.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(passport.initialize());
 
 app.use("/api/auth/", authRouter);
 
+app.use("/api/users/", usersRouter);
 app.use("/api/admin/", adminRouter);
 app.use("/", indexRouter);
 

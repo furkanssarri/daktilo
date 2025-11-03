@@ -19,4 +19,10 @@ GET     /api/auth/logout/
 
 GET     /api/admin/users/
 PUT     /api/admin/users/:id/
+
+// public
+
+GET     /api/users/me/
+PUT     /api/users/me/
+PUT     /api/users/me/password/     //reset password
 ```

@@ -8,6 +8,129 @@ type UserUpdateInput = Partial<
   Pick<User, "email" | "password" | "role" | "username" | "avatar">
 >;
 
+export const userGetPublic = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const userId = req.params.id || req.user?.id;
+  if (!userId)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: false,
+        username: true,
+        avatar: true,
+        role: true,
+        // gate sensitive info
+        email: req.user?.id === userId,
+      },
+    });
+    if (!user)
+      return res
+        .status(404)
+        .json({ status: "error", message: "User Profile was not found." });
+
+    res.json({
+      status: "success",
+      message: "User found.",
+      data: { user },
+    });
+  } catch (err) {
+    console.error("Error getting the user profile: ", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error.",
+    });
+  }
+};
+
+export const userPutPublic = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  if (!req.user)
+    return res.status(400).json({ status: "error", message: "Bad Request." });
+  const updates: UserUpdateInput = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user)
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found." });
+
+    const updatedData = { ...updates };
+
+    if (updates.password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(updates.password, salt);
+      updatedData.password = hashedPassword;
+    }
+
+    // TODO: IMPLEMENT VALIDATION & SANITIZATION
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: updatedData,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "User updated successfully.",
+      data: { updatedUser },
+    });
+  } catch (err) {
+    console.error("Error updating user: ", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error.",
+    });
+  }
+};
+
+export const userPasswordPutPublic = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const newPasswordInput: string = req.body;
+
+  if (!req.user)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user)
+      return res
+        .status(404)
+        .json({ status: "error", message: "User Not found." });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPasswordInput, salt);
+
+    // TODO: IMPLEMENT VALIDATION & SANITIZATION
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Password was changed successfully.",
+      data: {
+        updatedUser,
+      },
+    });
+  } catch (err) {
+    console.error("Error resetting the user's password: ", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error.",
+    });
+  }
+};
+
 export const usersGetByAdmin = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
@@ -52,7 +175,7 @@ export const userPutByAdmin = async (
         message: "User not found.",
       });
 
-    let updatedData = { ...updates };
+    const updatedData = { ...updates };
     if (updates.password) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(updates.password, salt);
@@ -60,15 +183,15 @@ export const userPutByAdmin = async (
     }
 
     // TODO: IMPLEMENT VALIDATION & SANITIZATION
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updatedData,
     });
 
-    res.json({
+    res.status(200).json({
       status: "success",
       message: "User updated successfully.",
-      data: updatedData,
+      data: updatedUser,
     });
   } catch (err) {
     console.error("Error edit user controller: ", err);
