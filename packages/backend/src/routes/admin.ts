@@ -1,6 +1,9 @@
 import { Router } from "express";
-import { requireAuth } from "../middlewares/requireAuth.js";
-import { requireRole } from "../middlewares/requireRole.js";
+import {
+  createNewPostAdmin,
+  deletePostAdmin,
+  updatePostAdmin,
+} from "../controllers/adminController.js";
 
 import {
   usersGetByAdmin,
@@ -9,7 +12,13 @@ import {
 
 const router = Router();
 
-router.get("/users", requireAuth, requireRole("ADMIN"), usersGetByAdmin);
-router.put("/users/:id", requireAuth, requireRole("ADMIN"), userPutByAdmin);
+// User management
+router.get("/users", usersGetByAdmin);
+router.put("/users/:id", userPutByAdmin);
+
+// Post management
+router.post("/posts", createNewPostAdmin);
+router.put("/posts/:id", updatePostAdmin);
+router.delete("/posts/:id", deletePostAdmin);
 
 export default router;
