@@ -436,3 +436,107 @@ export const deleteTagAdmin = async (
       .json({ status: "error", message: "Internal Server Error." });
   }
 };
+
+// PUT api/admin/comments/:id
+export const updateCommentAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  if (!id || !content)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+
+  try {
+    const existingComment = await prisma.comment.findUnique({ where: { id } });
+
+    if (!existingComment)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Comment not found." });
+
+    const updatedComment = await prisma.comment.update({
+      where: { id },
+      data: { content },
+    });
+
+    res.json({
+      status: "success",
+      message: "Comment updated successfully by admin.",
+      data: { updatedComment },
+    });
+  } catch (err) {
+    console.error("Error updating comment as admin: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// DELETE api/admin/comments/:id
+export const deleteCommentAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+
+  try {
+    const deletedComment = await prisma.comment.delete({ where: { id } });
+
+    res.json({
+      status: "success",
+      message: "Comment deleted successfully by admin.",
+      data: { deletedComment },
+    });
+  } catch (err: any) {
+    console.error("Error deleting comment as admin: ", err);
+    if (err.code === "P2025")
+      return res
+        .status(404)
+        .json({ status: "error", message: "Comment not found." });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// PUT api/admin/comments/:id/approval
+export const approveDisapproveCommentsAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  const { isApproved } = req.body;
+
+  if (!id || typeof isApproved !== "boolean")
+    return res.status(400).json({ status: "error", message: "Bad request." });
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id } });
+
+    if (!comment)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Comment not found." });
+
+    const updatedComment = await prisma.comment.update({
+      where: { id },
+      data: { isApproved },
+    });
+
+    res.json({
+      status: "success",
+      message: `Comment ${isApproved ? "approved" : "disapproved"} successfully.`,
+      data: { updatedComment },
+    });
+  } catch (err) {
+    console.error("Error approving/disapproving comment: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};

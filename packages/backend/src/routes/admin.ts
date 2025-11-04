@@ -12,6 +12,9 @@ import {
   createTagAdmin,
   updateTagAdmin,
   deleteTagAdmin,
+  updateCommentAdmin,
+  deleteCommentAdmin,
+  approveDisapproveCommentsAdmin,
 } from "../controllers/adminController.js";
 
 import {
@@ -38,6 +41,19 @@ router.get("/posts", allPostsAdmin);
 router.get("/posts/:slug", postBySlugAdmin);
 
 router.put("/posts/:id/publish", publishUnpublishPostAdmin);
+
+// ===============================
+//  Comment management
+// ===============================
+
+// Update a comment (admin)
+router.put("/comments/:id", updateCommentAdmin);
+
+// Delete a comment (admin)
+router.delete("/comments/:id", deleteCommentAdmin);
+
+// Approve or disapprove comment
+router.put("/comments/:id/approval", approveDisapproveCommentsAdmin);
 
 // ===============================
 //  Category management

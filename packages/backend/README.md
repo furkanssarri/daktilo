@@ -21,7 +21,7 @@ PUT     /api/admin/users/:id
 // users (authenticated)
 GET     /api/users/me
 PUT     /api/users/me
-PUT     /api/users/me/password           //reset password
+PUT     /api/users/me/password            //reset password
 
 // posts public
 GET     /api/posts
@@ -32,23 +32,19 @@ GET     /api/posts/:id/comments
 POST    /api/posts/:id/like
 POST    /api/posts/:id/comment
 
-  // ---------------------------------------------
-
 // Public
-GET    /api/categories                // Get all categories
-GET    /api/tags                      // Get all tags
-GET    /api/categories/:name/posts    // Get posts by category
-GET    /api/tags/:slug/posts          // Get posts by tag
+GET    /api/categories                  // Get all categories
+GET    /api/tags                        // Get all tags
+GET    /api/categories/:name/posts      // Get posts by category
+GET    /api/tags/:slug/posts            // Get posts by tag
 
 // Admin only
-POST   /api/admin/categories          // Create category
+POST   /api/admin/categories            // Create category
 PUT    /api/admin/categories/:id
 DELETE /api/admin/categories/:id
-POST   /api/admin/tags                // Create tag
+POST   /api/admin/tags                  // Create tag
 PUT    /api/admin/tags/:id
 DELETE /api/admin/tags/:id
-
-  // ---------------------------------------------------
 
 // posts (admin)
 POST    /api/admin/posts
