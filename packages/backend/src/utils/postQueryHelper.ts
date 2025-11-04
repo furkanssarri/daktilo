@@ -1,6 +1,15 @@
 import { Prisma } from "@prisma/client";
 
-export const getPublicPostInclude = (withComments = false) => {
+interface CountedPost {
+  _count?: {
+    likes: number;
+    comments: number;
+  };
+  authorId?: string;
+  isPublished?: boolean;
+}
+
+export const getPostInclude = (withComments = false) => {
   const baseInclude: Prisma.PostInclude = {
     author: {
       select: { id: true, username: true },
@@ -29,19 +38,10 @@ export const getPublicPostInclude = (withComments = false) => {
 };
 
 /**
- * Automatically formats Prisma post results to flatten _count fields
- * and remove the nested _count object.
+ * Normalizes Prisma post objects by flattening `_count` into `likesCount` and `commentsCount`.
+ * Accepts either a single post or an array of posts.
  */
-// src/utils/postQueryHelper.ts
-export const formatPostData = <
-  T extends {
-    _count?: { likes: number; comments: number };
-    authorId?: string;
-    isPublished?: boolean;
-  },
->(
-  postOrPosts: T | T[],
-) => {
+export const formatPostData = <T extends CountedPost>(postOrPosts: T | T[]) => {
   const sanitize = (post: T) => {
     const { _count, authorId, isPublished, ...rest } = post;
 

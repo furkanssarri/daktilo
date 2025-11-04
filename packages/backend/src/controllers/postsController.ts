@@ -1,37 +1,24 @@
 import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
-import {
-  getPublicPostInclude,
-  formatPostData,
-} from "../utils/postQueryHelper.js";
+import { fetchPosts, fetchPostBySlug } from "../services/postService.js";
 
 export const allPostsGetPublic = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
 ) => {
   try {
-    const posts = await prisma.post.findMany({
-      where: { isPublished: true },
-      orderBy: { createdAt: "desc" },
-      include: getPublicPostInclude(false),
-    });
-    if (!posts.length)
+    const posts = await fetchPosts("public");
+
+    if (Array.isArray(posts) && !posts.length)
       return res
         .status(404)
         .json({ status: "error", message: "No posts found." });
 
-    const formattedPosts = posts.map((post) => ({
-      ...post,
-      likedCount: post._count.likes,
-      commentsCount: post._count.comments,
-      _count: undefined,
-    }));
-
     res.json({
       status: "success",
       message: "Posts found.",
-      data: { posts: formattedPosts },
+      data: { posts },
     });
   } catch (err) {
     console.error("Error getting all posts: ", err);
@@ -49,10 +36,8 @@ export const singlePostBySlugPublic = async (
   if (!postSlug)
     return res.status(400).json({ status: "error", message: "Bad request." });
   try {
-    const post = await prisma.post.findFirst({
-      where: { slug: postSlug, isPublished: true },
-      include: getPublicPostInclude(true),
-    });
+    const post = fetchPostBySlug(postSlug, "public");
+
     if (!post)
       return res
         .status(404)
@@ -62,7 +47,7 @@ export const singlePostBySlugPublic = async (
       status: "success",
       message: "Post found.",
       data: {
-        post: formatPostData(post),
+        post: post,
       },
     });
   } catch (err) {
@@ -158,7 +143,7 @@ export const commentPostUser = async (
   if (!postId || !userId)
     return res.status(400).json({ status: "error", message: "Bad request." });
   try {
-    const post = await prisma.comment.create({
+    const comment = await prisma.comment.create({
       data: {
         content: "test",
         postId,
@@ -166,7 +151,7 @@ export const commentPostUser = async (
       },
     });
 
-    if (!post)
+    if (!comment)
       return res
         .status(404)
         .json({ status: "error", message: "Post not found." });
@@ -175,7 +160,7 @@ export const commentPostUser = async (
       status: "success",
       message: "Comment posted successfully.",
       data: {
-        post,
+        comment,
       },
     });
   } catch (err) {
