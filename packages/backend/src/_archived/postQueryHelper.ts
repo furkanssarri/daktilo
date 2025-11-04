@@ -1,3 +1,8 @@
+/**
+ * @deprecated
+ * This file is archived and no longer used in the project.
+ * It is kept here for reference in case we reintroduce a service layer.
+ */
 import { Prisma } from "@prisma/client";
 
 interface CountedPost {

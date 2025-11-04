@@ -22,6 +22,7 @@
     "prisma.config.js",
     "prisma.config.js.map",
     "prisma.config.d.ts.map",
-    "dist"
+    "dist",
+    "src/_archive"
   ]
 }

@@ -1,14 +1,31 @@
 import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
-import { fetchPosts, fetchPostBySlug } from "../services/postService.js";
 
 export const allPostsGetPublic = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
 ) => {
   try {
-    const posts = await fetchPosts("public");
+    const posts = await prisma.post.findMany({
+      where: { isPublished: true },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
     if (Array.isArray(posts) && !posts.length)
       return res
@@ -36,7 +53,24 @@ export const singlePostBySlugPublic = async (
   if (!postSlug)
     return res.status(400).json({ status: "error", message: "Bad request." });
   try {
-    const post = fetchPostBySlug(postSlug, "public");
+    const post = await prisma.post.findUnique({
+      where: { slug: postSlug, isPublished: true },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+    });
 
     if (!post)
       return res
@@ -107,23 +141,47 @@ export const likePostUser = async (
   if (!postId || !userId)
     return res.status(400).json({ status: "error", message: "Bad request." });
   try {
-    const post = await prisma.like.create({
+    const like = await prisma.like.create({
       data: {
         authorId: userId,
         postId,
       },
     });
 
-    if (!post)
+    if (!like)
       return res
         .status(404)
         .json({ status: "error", message: "No such post exists." });
+
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        author: {
+          select: { id: true, username: true, avatar: true },
+        },
+        comments: {
+          select: {
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          include: {
+            author: {
+              select: { username: true, avatar: true },
+            },
+          },
+        },
+        _count: {
+          select: { likes: true, comments: true },
+        },
+      },
+    });
 
     res.json({
       status: "success",
       message: `Like added to the post: ${postId}.`,
       data: {
-        post,
+        updatedPost,
       },
     });
   } catch (err) {
@@ -156,11 +214,35 @@ export const commentPostUser = async (
         .status(404)
         .json({ status: "error", message: "Post not found." });
 
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        author: {
+          select: { id: true, username: true, avatar: true },
+        },
+        comments: {
+          select: {
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          include: {
+            author: {
+              select: { id: true, username: true, avatar: true },
+            },
+          },
+        },
+        _count: {
+          select: { likes: true, comments: true },
+        },
+      },
+    });
+
     res.json({
       status: "success",
       message: "Comment posted successfully.",
       data: {
-        comment,
+        updatedPost,
       },
     });
   } catch (err) {

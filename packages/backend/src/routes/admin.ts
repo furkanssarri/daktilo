@@ -1,9 +1,11 @@
 import { Router } from "express";
 import {
-  allPostsAdmin,
   createNewPostAdmin,
   deletePostAdmin,
   updatePostAdmin,
+  allPostsAdmin,
+  postBySlugAdmin,
+  publishUnpublishPostAdmin,
 } from "../controllers/adminController.js";
 
 import {
@@ -23,4 +25,7 @@ router.put("/posts/:id", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
 router.get("/posts", allPostsAdmin);
+router.get("/posts/:id", postBySlugAdmin);
+
+router.put("/posts/:id/publish", publishUnpublishPostAdmin);
 export default router;

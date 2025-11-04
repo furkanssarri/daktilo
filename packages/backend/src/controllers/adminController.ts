@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 import type { Post } from "@prisma/client";
-import { fetchPosts } from "../services/postService.js";
 
 type PostUpdateInput = Partial<
   Pick<Post, "title" | "content" | "excerpt" | "slug">
@@ -105,8 +104,27 @@ export const allPostsAdmin = async (
   res: Response<ResponseJsonObject>,
 ) => {
   try {
-    const posts = await fetchPosts("admin");
-    if (!posts)
+    const posts = await prisma.post.findMany({
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (Array.isArray(posts) && posts.length)
       return res
         .status(404)
         .json({ status: "error", message: "No posts found." });
@@ -118,6 +136,91 @@ export const allPostsAdmin = async (
     });
   } catch (err) {
     console.error("Error getting all posts as an admin: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+export const postBySlugAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { postSlug } = req.params;
+  if (!postSlug)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const post = await prisma.post.findUnique({
+      where: { slug: postSlug },
+      include: {
+        author: {
+          select: { id: true, email: true, username: true, avatar: true },
+        },
+        comments: {
+          select: { id: true, content: true, createdAt: true, updatedAt: true },
+          include: {
+            author: {
+              select: { id: true, username: true, avatar: true },
+            },
+          },
+        },
+        _count: {
+          select: { likes: true, comments: true },
+        },
+      },
+    });
+
+    if (!post)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Post is not found." });
+
+    res.json({
+      status: "success",
+      message: "Post found successfully.",
+      data: {
+        post,
+      },
+    });
+  } catch (err) {
+    console.error("Error getting post by slug: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+export const publishUnpublishPostAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { postId } = req.params;
+  if (!postId)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const postToUpdate = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!postToUpdate)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Post not found." });
+
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        isPublished: postToUpdate.isPublished,
+      },
+    });
+
+    res.json({
+      status: "success",
+      message: "Post found successfully.",
+      data: { updatedPost },
+    });
+  } catch (err) {
+    console.error("Error publishing post: ", err);
     return res
       .status(500)
       .json({ status: "error", message: "Internal Server Error." });

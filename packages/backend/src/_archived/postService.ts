@@ -1,5 +1,10 @@
+/**
+ * @deprecated
+ * This file is archived and no longer used in the project.
+ * It is kept here for reference in case we reintroduce a service layer.
+ */
 import prisma from "../db/prismaClient.js";
-import { getPostInclude, formatPostData } from "../utils/postQueryHelper.js";
+import { getPostInclude, formatPostData } from "./postQueryHelper.js";
 
 // type FormattedPost =
 //   ReturnType<typeof formatPostData> extends (infer U)[] ? U : never;
@@ -33,6 +38,21 @@ export const fetchPostBySlug = async (
 ) => {
   const whereClause =
     userRole === "public" ? { slug, isPublished: true } : { slug };
+
+  const post = await prisma.post.findUnique({
+    where: whereClause,
+    include: getPostInclude(true),
+  });
+
+  return post ? formatPostData(post) : null;
+};
+
+export const fetchPostById = async (
+  id: string,
+  userRole: "admin" | "public",
+) => {
+  const whereClause =
+    userRole === "public" ? { id, isPublished: true } : { id };
 
   const post = await prisma.post.findUnique({
     where: whereClause,
