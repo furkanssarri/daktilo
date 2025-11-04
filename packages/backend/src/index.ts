@@ -11,6 +11,8 @@ import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
 import usersRouter from "./routes/users.js";
 import postsRouter from "./routes/posts.js";
+import categoryRouter from "./routes/category.js";
+import tagsRouter from "./routes/tags.js";
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use(passport.initialize());
 
 app.use("/api/auth", authRouter);
 
+app.use("/api/tags", tagsRouter);
+app.use("/api/categories", categoryRouter);
 app.use("/api/posts", postsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/admin", requireAuth, requireRole("ADMIN"), adminRouter);
