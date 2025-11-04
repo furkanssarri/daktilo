@@ -8,6 +8,7 @@ type UserUpdateInput = Partial<
   Pick<User, "email" | "password" | "role" | "username" | "avatar">
 >;
 
+// GET api/users/me
 export const userGetPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -46,6 +47,7 @@ export const userGetPublic = async (
   }
 };
 
+// PUT api/users/me
 export const userPutPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -89,6 +91,7 @@ export const userPutPublic = async (
   }
 };
 
+// PUT api/users/me/password
 export const userPasswordPutPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -131,6 +134,7 @@ export const userPasswordPutPublic = async (
   }
 };
 
+// GET api/admin/users
 export const usersGetByAdmin = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
@@ -156,6 +160,7 @@ export const usersGetByAdmin = async (
   }
 };
 
+//PUT api/admin/users/:id
 export const userPutByAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,

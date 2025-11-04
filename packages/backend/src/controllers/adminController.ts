@@ -7,6 +7,7 @@ type PostUpdateInput = Partial<
   Pick<Post, "title" | "content" | "excerpt" | "slug">
 >;
 
+// POST api/admin/posts
 export const createNewPostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -39,6 +40,7 @@ export const createNewPostAdmin = async (
   }
 };
 
+// PUT api/admin/posts/:id
 export const updatePostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -70,6 +72,7 @@ export const updatePostAdmin = async (
   }
 };
 
+// DELETE api/admin/posts/:id
 export const deletePostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -99,6 +102,7 @@ export const deletePostAdmin = async (
   }
 };
 
+// GET api/admin/posts
 export const allPostsAdmin = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
@@ -142,6 +146,7 @@ export const allPostsAdmin = async (
   }
 };
 
+// GET api/admin/posts/:slug
 export const postBySlugAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -190,6 +195,7 @@ export const postBySlugAdmin = async (
   }
 };
 
+// PUT /api/admin/posts/:id/publish
 export const publishUnpublishPostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject>,

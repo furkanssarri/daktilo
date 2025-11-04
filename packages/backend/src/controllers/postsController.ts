@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 
+// GET api/posts/
 export const allPostsGetPublic = async (
   _req: Request,
   res: Response<ResponseJsonObject>,
@@ -45,6 +46,7 @@ export const allPostsGetPublic = async (
   }
 };
 
+// GET api/posts/:slug
 export const singlePostBySlugPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -92,6 +94,7 @@ export const singlePostBySlugPublic = async (
   }
 };
 
+// GET api/posts/:id/comments
 export const singlePostCommentsPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -132,6 +135,7 @@ export const singlePostCommentsPublic = async (
   }
 };
 
+// POST api/posts/:id/like
 export const likePostUser = async (
   req: Request,
   res: Response<ResponseJsonObject>,
@@ -192,6 +196,7 @@ export const likePostUser = async (
   }
 };
 
+// POST api/posts/:id/comment
 export const commentPostUser = async (
   req: Request,
   res: Response<ResponseJsonObject>,
