@@ -6,6 +6,12 @@ import {
   allPostsAdmin,
   postBySlugAdmin,
   publishUnpublishPostAdmin,
+  createCategoryAdmin,
+  updateCategoryAdmin,
+  deleteCategoryAdmin,
+  createTagAdmin,
+  updateTagAdmin,
+  deleteTagAdmin,
 } from "../controllers/adminController.js";
 
 import {
@@ -15,11 +21,15 @@ import {
 
 const router = Router();
 
-// User management
+// ===============================
+//  User management
+// ===============================
 router.get("/users", usersGetByAdmin);
 router.put("/users/:id", userPutByAdmin);
 
-// Post management
+// ===============================
+//  Post management
+// ===============================
 router.post("/posts", createNewPostAdmin);
 router.put("/posts/:id", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
@@ -28,5 +38,19 @@ router.get("/posts", allPostsAdmin);
 router.get("/posts/:slug", postBySlugAdmin);
 
 router.put("/posts/:id/publish", publishUnpublishPostAdmin);
+
+// ===============================
+//  Category management
+// ===============================
+router.post("/categories", createCategoryAdmin);
+router.put("/categories/:id", updateCategoryAdmin);
+router.delete("/categories/:id", deleteCategoryAdmin);
+
+// ===============================
+//  Tag management
+// ===============================
+router.post("/tags", createTagAdmin);
+router.put("/tags/:id", updateTagAdmin);
+router.delete("/tags/:id", deleteTagAdmin);
 
 export default router;

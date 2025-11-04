@@ -128,7 +128,7 @@ export const allPostsAdmin = async (
       orderBy: { createdAt: "desc" },
     });
 
-    if (Array.isArray(posts) && posts.length)
+    if (!Array.isArray(posts) || !posts.length)
       return res
         .status(404)
         .json({ status: "error", message: "No posts found." });
@@ -227,6 +227,210 @@ export const publishUnpublishPostAdmin = async (
     });
   } catch (err) {
     console.error("Error publishing post: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// POST api/admin/categories
+export const createCategoryAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { name, description } = req.body;
+  if (!name)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const existingCategory = await prisma.category.findUnique({
+      where: { name },
+    });
+
+    if (existingCategory)
+      return res
+        .status(409)
+        .json({ status: "error", message: "Category already exists." });
+
+    const newCategory = await prisma.category.create({
+      data: { name, description },
+    });
+
+    res.json({
+      status: "success",
+      message: "Category created successfully.",
+      data: { newCategory },
+    });
+  } catch (err) {
+    console.error("Error creating category: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// PUT api/admin/categories/:id
+export const updateCategoryAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+  if (!id || !name)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const duplicate = await prisma.category.findUnique({ where: { name } });
+
+    if (duplicate && duplicate.id !== id)
+      return res
+        .status(409)
+        .json({ status: "error", message: "Category name already in use." });
+
+    const category = await prisma.category.findUnique({ where: { id } });
+
+    if (!category)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Category not found." });
+
+    const updatedCategory = await prisma.category.update({
+      where: { id },
+      data: { name, description },
+    });
+
+    res.json({
+      status: "success",
+      message: "Category updated successfully.",
+      data: { updatedCategory },
+    });
+  } catch (err) {
+    console.error("Error updating category: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// DELETE api/admin/categories/:id
+export const deleteCategoryAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  if (!id)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const deletedCategory = await prisma.category.delete({ where: { id } });
+
+    res.json({
+      status: "success",
+      message: "Category deleted successfully.",
+      data: { deletedCategory },
+    });
+  } catch (err: any) {
+    console.error("Error deleting category: ", err);
+    if (err.code === "P2025")
+      return res
+        .status(404)
+        .json({ status: "error", message: "Category not found." });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// POST api/admin/tags
+export const createTagAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { name } = req.body;
+  if (!name)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const existingTag = await prisma.tag.findUnique({ where: { name } });
+    if (existingTag)
+      return res
+        .status(409)
+        .json({ status: "error", message: "Tag already exists." });
+
+    const newTag = await prisma.tag.create({ data: { name } });
+
+    res.json({
+      status: "success",
+      message: "Tag created successfully.",
+      data: { newTag },
+    });
+  } catch (err) {
+    console.error("Error creating tag: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// PUT api/admin/tags/:id
+export const updateTagAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  if (!id || !name)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const duplicate = await prisma.tag.findUnique({ where: { name } });
+    if (duplicate && duplicate.id !== id)
+      return res
+        .status(409)
+        .json({ status: "error", message: "Tag name already in use." });
+
+    const tag = await prisma.tag.findUnique({ where: { id } });
+
+    if (!tag)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Tag not found." });
+
+    const updatedTag = await prisma.tag.update({
+      where: { id },
+      data: { name },
+    });
+
+    res.json({
+      status: "success",
+      message: "Tag updated successfully.",
+      data: { updatedTag },
+    });
+  } catch (err) {
+    console.error("Error updating tag: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+// DELETE api/admin/tags/:id
+export const deleteTagAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { id } = req.params;
+  if (!id)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const deletedTag = await prisma.tag.delete({ where: { id } });
+
+    res.json({
+      status: "success",
+      message: "Tag deleted successfully.",
+      data: { deletedTag },
+    });
+  } catch (err: any) {
+    console.error("Error deleting tag: ", err);
+    if (err.code === "P2025")
+      return res
+        .status(404)
+        .json({ status: "error", message: "Tag not found." });
     return res
       .status(500)
       .json({ status: "error", message: "Internal Server Error." });
