@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  allPostsAdmin,
   createNewPostAdmin,
   deletePostAdmin,
   updatePostAdmin,
@@ -21,4 +22,5 @@ router.post("/posts", createNewPostAdmin);
 router.put("/posts/:id", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
+router.get("/posts", allPostsAdmin);
 export default router;

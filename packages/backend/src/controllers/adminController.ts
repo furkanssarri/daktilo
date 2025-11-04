@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 import type { Post } from "@prisma/client";
+import { fetchPosts } from "../services/postService.js";
 
 type PostUpdateInput = Partial<
   Pick<Post, "title" | "content" | "excerpt" | "slug">
@@ -93,6 +94,30 @@ export const deletePostAdmin = async (
     });
   } catch (err) {
     console.error("Error deleting post: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
+export const allPostsAdmin = async (
+  _req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  try {
+    const posts = await fetchPosts("admin");
+    if (!posts)
+      return res
+        .status(404)
+        .json({ status: "error", message: "No posts found." });
+
+    res.json({
+      status: "success",
+      message: "Posts fetched successfully.",
+      data: { posts },
+    });
+  } catch (err) {
+    console.error("Error getting all posts as an admin: ", err);
     return res
       .status(500)
       .json({ status: "error", message: "Internal Server Error." });
