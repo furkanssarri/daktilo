@@ -1,0 +1,10 @@
+@layer utilities {
+  .hover-float {
+    @apply transition-transform duration-200 ease-out hover:-translate-y-1 hover:scale-110;
+  }
+
+  /* Universal hover color effect */
+  .hover-color {
+    @apply transition-colors duration-200 ease-out;
+  }
+}
