@@ -5,7 +5,7 @@ import prisma from "../db/prismaClient.js";
 import bcrypt from "bcryptjs";
 
 type UserUpdateInput = Partial<
-  Pick<User, "email" | "password" | "role" | "username" | "avatar">
+  Pick<User, "email" | "password" | "role" | "username" | "avatarId">
 >;
 
 // GET api/users/me
@@ -22,7 +22,7 @@ export const userGetPublic = async (
       select: {
         id: false,
         username: true,
-        avatar: true,
+        avatarId: true,
         role: true,
         // gate sensitive info
         email: req.user?.id === userId,

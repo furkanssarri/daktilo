@@ -19,16 +19,16 @@ model User {
   password  String
   role      UserRole  @default(USER)
   username  String?
-  avatar    String?
+  avatarId  String?  @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   lastLogin DateTime?
 
+
+  avatar    Media?    @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: SetNull)
   posts    Post[]
   comments Comment[]
   likes    Like[]
-  Media    Media[]
-
   @@map("users")
 }
 
@@ -44,14 +44,29 @@ model Post {
   updatedAt   DateTime  @updatedAt
   authorId    String
   categoryId  String?
+  imageId     String? @unique
 
-  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  image       Media?    @relation("PostImage", fields: [imageId], references: [id], onDelete: SetNull)
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   categories Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   comments   Comment[]
   likes      Like[]
   tags       Tag[]
 
   @@map("posts")
+}
+
+model Media {
+  id         String   @id @default(cuid())
+  filename   String
+  url        String
+  mimeType   String
+  size       Int
+  createdAt  DateTime @default(now())
+  avatarOwner User? @relation("UserAvatar")
+  postImage   Post?  @relation("PostImage")
+
+  @@map("media")
 }
 
 model Comment {
@@ -100,19 +115,7 @@ model Category {
   @@map("categories")
 }
 
-model Media {
-  id         String   @id @default(cuid())
-  filename   String
-  url        String
-  mimeType   String
-  size       Int
-  uploadedBy String
-  createdAt  DateTime @default(now())
 
-  user User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
-
-  @@map("media")
-}
 
 enum UserRole {
   ADMIN
