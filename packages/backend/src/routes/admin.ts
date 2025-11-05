@@ -15,6 +15,7 @@ import {
   updateCommentAdmin,
   deleteCommentAdmin,
   approveDisapproveCommentsAdmin,
+  uploadPostImageAdmin,
 } from "../controllers/adminController.js";
 
 import {
@@ -22,7 +23,10 @@ import {
   userPutByAdmin,
 } from "../controllers/usersController.js";
 
+import multer from "multer";
+
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ===============================
 //  User management
@@ -68,5 +72,7 @@ router.delete("/categories/:id", deleteCategoryAdmin);
 router.post("/tags", createTagAdmin);
 router.put("/tags/:id", updateTagAdmin);
 router.delete("/tags/:id", deleteTagAdmin);
+
+router.post("/upload", upload.single("file"), uploadPostImageAdmin);
 
 export default router;

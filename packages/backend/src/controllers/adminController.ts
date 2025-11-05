@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
+import supabase from "../config/supabaseClient.js";
 import type { Post } from "@prisma/client";
 
 type PostUpdateInput = Partial<
@@ -115,7 +116,7 @@ export const allPostsAdmin = async (
             id: true,
             email: true,
             username: true,
-            avatar: true,
+            avatarId: true,
           },
         },
         _count: {
@@ -159,13 +160,13 @@ export const postBySlugAdmin = async (
       where: { slug: postSlug },
       include: {
         author: {
-          select: { id: true, email: true, username: true, avatar: true },
+          select: { id: true, email: true, username: true, avatarId: true },
         },
         comments: {
           select: { id: true, content: true, createdAt: true, updatedAt: true },
           include: {
             author: {
-              select: { id: true, username: true, avatar: true },
+              select: { id: true, username: true, avatarId: true },
             },
           },
         },
@@ -535,6 +536,62 @@ export const approveDisapproveCommentsAdmin = async (
     });
   } catch (err) {
     console.error("Error approving/disapproving comment: ", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal Server Error." });
+  }
+};
+// POST api/admin/uplpad
+export const uploadPostImageAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const { file } = req;
+  if (!file)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const sanitizedName = file.originalname.replace(/\s+/g, "_");
+    const storageName = `${Date.now()}_${sanitizedName}`;
+    const filePath = `posts/${storageName}`; // <- unique key inside bucket
+
+    // upload to supabase
+    const { error: uploadError } = await supabase.storage
+      .from("post-images")
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Error uploading image to the cloud: ", uploadError);
+      return res
+        .status(500)
+        .json({ status: "error", message: "Internal Server Error." });
+    }
+
+    // get public URL
+    const { data } = supabase.storage
+      .from("post-images")
+      .getPublicUrl(filePath);
+
+    const publicUrl = data.publicUrl;
+
+    const newMedia = await prisma.media.create({
+      data: {
+        filename: file.originalname,
+        url: publicUrl,
+        mimeType: file.mimetype,
+        size: file.size,
+      },
+    });
+
+    res.json({
+      status: "success",
+      message: "Image uploaded successfully.",
+      data: { newMedia },
+    });
+  } catch (err) {
+    console.error("Error uploading post image: ", err);
     return res
       .status(500)
       .json({ status: "error", message: "Internal Server Error." });
