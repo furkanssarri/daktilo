@@ -4,21 +4,7 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 import { Link } from "react-router-dom";
 import data from "@/data.json";
 import categoryData from "@/categories.json";
-
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  slug?: string;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
-  authorId: string;
-  categoryId: string;
-  imageUrl: string;
-  readTime?: number;
-};
+import type { PostType } from "@/types/PostTypes";
 
 type Category = {
   id: string;
@@ -28,8 +14,8 @@ type Category = {
 };
 
 const Blog = () => {
-  const recentPosts: Post[] = [];
-  const allPosts: Post[] = data.posts;
+  const recentPosts: PostType[] = [];
+  const allPosts: PostType[] = data.posts;
   const categories: Category[] = categoryData.categories;
 
   return (
@@ -47,7 +33,7 @@ const Blog = () => {
 
       {/* Recent Posts (Optional)  */}
       <section className="grid md:grid-cols-2 gap-8">
-        {recentPosts.map((post: Post) =>
+        {recentPosts.map((post: PostType) =>
           post ? (
             <Card
               key={post.id}
@@ -75,7 +61,7 @@ const Blog = () => {
 
       {/* Full Blog List */}
       <section className="flex flex-col space-y-6">
-        {allPosts.map((post: Post) =>
+        {allPosts.map((post: PostType) =>
           post ? (
             <Card
               key={post.id}

@@ -1,32 +1,17 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-
+import type { PostType } from "@/types/PostTypes";
 // Mock data imports (adjust to your actual source)
 import data from "@/data.json"; // assume this has { posts: Post[], categories: Category[] }
 
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  slug?: string;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
-  authorId: string;
-  categoryId: string;
-  imageUrl: string;
-  readTime?: number;
-};
-
 const Post = () => {
   const { postId } = useParams();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<PostType | null>(null);
 
   useEffect(() => {
     const foundPost = data.posts.find(
-      (p: Post) => p.slug === postId || p.id === postId,
+      (p: PostType) => p.slug === postId || p.id === postId,
     );
     setPost(foundPost || null);
   }, [postId]);

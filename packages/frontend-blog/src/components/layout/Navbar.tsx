@@ -21,14 +21,16 @@ function Navbar() {
     { name: "Blog", to: "/blog" },
     { name: "About", to: "/about" },
     { name: "Contact", to: "/contact" },
+    { name: "Signup", to: "auth/signup" },
+    { name: "Login", to: "auth/login" },
   ];
 
   return (
-    <nav className="flex items-end justify-between px-6 py-4">
+    <nav className="flex items-end justify-between px-3 py-4">
       {/* Desktop nav */}
       <div className="hidden md:flex items-center space-x-6">
         <NavigationMenu>
-          <NavigationMenuList className="flex space-x-6">
+          <NavigationMenuList className="flex space-x-0">
             {links.map((link) => (
               <NavigationMenuItem key={link.to}>
                 <NavigationMenuLink asChild>
