@@ -52,6 +52,7 @@ function Navbar() {
 
       {/* Mobile nav */}
       <div className="md:hidden flex items-center gap-2">
+        <CommandPalette />
         <ModeToggle />
         <Sheet>
           <SheetTrigger asChild>
