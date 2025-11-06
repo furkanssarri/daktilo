@@ -26,6 +26,7 @@ function Navbar() {
     { name: "Blog", to: "/blog" },
     { name: "About", to: "/about" },
     { name: "Contact", to: "/contact" },
+    { name: "Profile", to: "api/users/me/" },
   ];
 
   return (
@@ -111,7 +112,7 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  onClick={() => setOpen(false)} // 👈 closes menu on click
+                  onClick={() => setOpen(false)}
                   className={cn(
                     "text-lg font-medium text-muted-foreground hover:text-foreground transition-colors",
                     location.pathname === link.to && "text-foreground",
