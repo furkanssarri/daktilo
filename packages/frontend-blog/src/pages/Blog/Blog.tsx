@@ -1,7 +1,6 @@
 import { SocialButtons } from "@/components/custom/SocialButtons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-dropdown-menu";
-import { Badge } from "lucide-react";
 import { Link } from "react-router-dom";
 import data from "@/data.json";
 import categoryData from "@/categories.json";

@@ -5,7 +5,7 @@ const Footer = () => {
 
   return (
     <footer
-      className="border-t py-6 text-center text-sm text-muted-foreground flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3"
+      className="border-t py-6 text-center text-sm text-muted-foreground flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-5"
       role="contentinfo"
     >
       <a
