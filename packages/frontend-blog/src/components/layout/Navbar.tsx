@@ -1,4 +1,4 @@
-import { ModeToggle } from "../mode-toggle.tsx";
+import ModeToggle from "@/components/ui/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -11,6 +11,7 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import CommandPalette from "../custom/CommandPalette";
 
 function Navbar() {
   const location = useLocation();
@@ -23,10 +24,7 @@ function Navbar() {
   ];
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4">
-      {/* Left side: site title */}
-      <h1 className="text-xl font-bold tracking-tight">Daktilo Blog</h1>
-
+    <nav className="flex items-end justify-between px-6 py-4">
       {/* Desktop nav */}
       <div className="hidden md:flex items-center space-x-6">
         <NavigationMenu>
@@ -48,6 +46,7 @@ function Navbar() {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
+        <CommandPalette />
         <ModeToggle />
       </div>
 
