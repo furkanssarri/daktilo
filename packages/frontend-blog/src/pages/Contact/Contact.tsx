@@ -1,3 +1,4 @@
-export default function Contact() {
+const Contact = () => {
   return <div className="p-10 text-center text-2xl">Contact Me</div>;
-}
+};
+export default Contact;

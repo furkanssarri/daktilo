@@ -1,8 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-
 import { SocialButtons } from "@/components/custom/SocialButtons";
+
 export default function Home() {
   const dummyPosts = [
     {
@@ -20,7 +20,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="space-y-24">
+    <div className="space-y-24 border rounded-sm mt-5">
       {/* Landing Section */}
       <section className="max-w-3xl mx-auto text-center pt-16 pb-24 px-6">
         <h1 className="text-4xl sm:text-5xl font-bold mb-6">
@@ -50,7 +50,7 @@ export default function Home() {
       <Separator className="max-w-4xl mx-auto" />
 
       {/* Latest Articles Section */}
-      <section className="max-w-4xl mx-auto px-6">
+      <section className="max-w-4xl mx-auto px-6 mb-4">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-semibold">Latest Articles</h2>
           <Link

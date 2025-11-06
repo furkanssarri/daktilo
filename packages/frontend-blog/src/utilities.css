@@ -7,4 +7,36 @@
   .hover-color {
     @apply transition-colors duration-200 ease-out;
   }
+  .fade-in {
+    @apply opacity-0 translate-y-2 animate-[fadeIn_0.6s_ease-out_forwards];
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* optional stagger delays */
+  .delay-1 {
+    animation-delay: 0.1s;
+  }
+  .delay-2 {
+    animation-delay: 0.2s;
+  }
+  .delay-3 {
+    animation-delay: 0.3s;
+  }
+  .delay-4 {
+    animation-delay: 0.4s;
+  }
+
+  .scroll-fade {
+    @apply opacity-0 translate-y-4 transition-all duration-700 ease-out;
+  }
+
+  .scroll-fade.visible {
+    @apply opacity-100 translate-y-0;
+  }
 }
