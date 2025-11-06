@@ -14,9 +14,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CommandPalette from "../custom/CommandPalette";
+import { useState } from "react";
 
 function Navbar() {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   // Public page links (Account actions are handled in a dropdown)
   const links = [
@@ -96,7 +98,7 @@ function Navbar() {
       <div className="md:hidden flex items-center gap-2">
         <CommandPalette />
         <ModeToggle />
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Open menu">
               <Menu className="h-5 w-5" />
@@ -109,6 +111,7 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
+                  onClick={() => setOpen(false)} // 👈 closes menu on click
                   className={cn(
                     "text-lg font-medium text-muted-foreground hover:text-foreground transition-colors",
                     location.pathname === link.to && "text-foreground",
@@ -122,6 +125,7 @@ function Navbar() {
                 <p className="text-sm text-muted-foreground mb-2">Account</p>
                 <Link
                   to="/auth/login"
+                  onClick={() => setOpen(false)} // 👈 also close
                   className={cn(
                     "block px-3 py-2 rounded-md text-base font-medium hover:bg-muted transition-colors",
                     location.pathname === "/auth/login" && "bg-muted",
@@ -131,6 +135,7 @@ function Navbar() {
                 </Link>
                 <Link
                   to="/auth/signup"
+                  onClick={() => setOpen(false)} // 👈 also close
                   className={cn(
                     "block px-3 py-2 rounded-md text-base font-medium mt-2 hover:bg-muted transition-colors",
                     location.pathname === "/auth/signup" && "bg-muted",
