@@ -2,20 +2,25 @@ import "dotenv/config";
 import jwt from "jsonwebtoken";
 
 const generateToken = (userId: string, userEmail: string) => {
-  const secret = process.env.JWT_ACCESS_TOKEN_SECRET;
+  const accessSecret = process.env.JWT_ACCESS_TOKEN_SECRET;
+  const refreshSecret = process.env.JWT_REFRESH_TOKEN_SECRET;
 
-  if (!secret)
-    throw new Error(
-      "JWT_ACCESS_TOKEN_SECRET environment variable is not defined.",
-    );
+  if (!accessSecret || !refreshSecret)
+    throw new Error("JWT secrets are not defined.");
 
-  const token = jwt.sign({ id: userId, email: userEmail }, secret, {
-    expiresIn: "7h",
+  const accessToken = jwt.sign({ id: userId, email: userEmail }, accessSecret, {
+    expiresIn: "15m", // shorter-lived access token
   });
 
-  return {
-    token,
-  };
+  const refreshToken = jwt.sign(
+    { id: userId, email: userEmail },
+    refreshSecret,
+    {
+      expiresIn: "7d", // longer-lived refresh token
+    },
+  );
+
+  return { accessToken, refreshToken };
 };
 
 export default generateToken;

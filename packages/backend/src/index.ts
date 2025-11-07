@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import passport from "passport";
 import "./config/passport.js";
 
@@ -19,6 +20,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 app.use(passport.initialize());
 
@@ -28,7 +30,7 @@ app.use("api/comments", requireAuth, commentsRouter);
 app.use("/api/tags", tagsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/posts", postsRouter);
-app.use("/api/users", usersRouter);
+app.use("/api/users", requireAuth, requireRole("ADMIN", "USER"), usersRouter);
 app.use("/api/admin", requireAuth, requireRole("ADMIN"), adminRouter);
 app.use("/", indexRouter);
 

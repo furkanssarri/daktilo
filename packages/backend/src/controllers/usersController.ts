@@ -47,6 +47,42 @@ export const userGetPublic = async (
   }
 };
 
+// GET api/users/me/comments
+export const userGetCommentsPublic = async (
+  req: Request,
+  res: Response<ResponseJsonObject>,
+) => {
+  const userId = req.user?.id;
+  if (!userId)
+    return res.status(400).json({ status: "error", message: "Bad request." });
+  try {
+    const userComments = await prisma.comment.findMany({
+      where: { authorId: userId },
+      include: {
+        post: {
+          select: { title: true },
+        },
+      },
+    });
+
+    if (!userComments)
+      return res
+        .status(404)
+        .json({ status: "error", message: "No comments found." });
+
+    res.json({
+      status: "success",
+      message: "Found user comments.",
+      data: {
+        userComments,
+      },
+    });
+  } catch (err) {
+    console.error("Error getting user comments: ", err);
+    return res.json({ status: "error", message: "Internal Server Error." });
+  }
+};
+
 // PUT api/users/me
 export const userPutPublic = async (
   req: Request,

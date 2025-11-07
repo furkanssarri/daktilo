@@ -2,7 +2,11 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 
-import { loginUser, signup } from "../controllers/authController.js";
+import {
+  loginUser,
+  refreshToken,
+  signup,
+} from "../controllers/authController.js";
 import { requireAuth } from "../middlewares/requireAuth.js";
 
 const router = Router();
@@ -16,6 +20,7 @@ router.get("/signup", (_req, res) => {
   });
 });
 
+router.post("/auth/refresh", refreshToken);
 router.post("/login", loginUser);
 router.get("/login", (_req: Request, res: Response<ResponseJsonObject>) => {
   res.json({
