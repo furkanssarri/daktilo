@@ -1,8 +1,9 @@
 import { apiRequest } from "./apiClient";
+import type { Tag, Post } from "@prisma/client";
 
 const tagApi = {
-  getAll: () => apiRequest("/tags"),
-  getPostsBySlug: (slug: string) => apiRequest(`/tags/${slug}/posts`),
+  getAll: () => apiRequest<Tag[]>("/tags"),
+  getPostsBySlug: (slug: string) => apiRequest<Post[]>(`/tags/${slug}/posts`),
 };
 
 export default tagApi;

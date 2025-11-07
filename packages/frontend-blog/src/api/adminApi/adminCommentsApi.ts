@@ -1,11 +1,12 @@
 import { apiRequest } from "../apiClient";
+import type { Comment } from "@prisma/client";
 
 const adminCommentApi = {
-  getAll: () => apiRequest("/admin/comments"),
+  getAll: () => apiRequest<Comment[]>("/admin/comments"),
   delete: (id: string) =>
-    apiRequest(`/admin/comments/${id}`, { method: "DELETE" }),
+    apiRequest<void>(`/admin/comments/${id}`, { method: "DELETE" }),
   approveDisapprove: (id: string, value: boolean) =>
-    apiRequest(`/admin/comments/${id}/approve`, {
+    apiRequest<Comment>(`/admin/comments/${id}/approve`, {
       method: "PUT",
       body: JSON.stringify({ approved: value }),
     }),
