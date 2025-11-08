@@ -2,56 +2,89 @@ import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 import supabase from "../config/supabaseClient.js";
-import type { Post } from "@prisma/client";
+import type { Post as PostType, User as UserType } from "@prisma/client";
 import { buildQueryOptions } from "../utils/includeBuilder.js";
 import sendResponse from "../utils/responseUtil.js";
+import generateUniqueSlug from "../utils/generateSlug.js";
 
 type PostUpdateInput = Partial<
-  Pick<Post, "title" | "content" | "excerpt" | "slug">
+  Pick<PostType, "title" | "content" | "excerpt" | "imageId">
 >;
-
-// POST api/admin/posts
+/**
+ * POST api/admin/posts
+ *
+ * Accepts: `title: string`, `content: string`,
+ * `excerpt?: string`, derived `slug:string` and `authorId: string`.
+ * Creates a new Post record with the accepted data.
+ * Checks if `user.role` is `ADMIN` for authorization.
+ * Returns the created `newMessage:<PostType>`.
+ */
 export const createNewPostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
-  if (!req.user)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  const { title, content, excerpt, imageId } = req.body;
+
+  if (!req.user || req.user.role !== "ADMIN")
+    return sendResponse(
+      res,
+      "error",
+      "You are not authorized to create posts.",
+      undefined,
+      401,
+    );
+
+  if (!title || content)
+    return sendResponse(
+      res,
+      "error",
+      "Bad request: All fields are required.",
+      undefined,
+      400,
+    );
+  const slugifiedTitle = await generateUniqueSlug(title);
   try {
     const newPost = await prisma.post.create({
       data: {
-        title: "test title",
-        content: "test content",
-        excerpt: "test excerpt",
-        slug: "test-slug",
+        title,
+        content,
+        excerpt: excerpt ? excerpt : null,
+        slug: slugifiedTitle,
         authorId: req.user.id,
       },
     });
 
-    res.json({
-      status: "success",
-      message: "Post created successfully.",
-      data: {
-        newPost,
-      },
+    return sendResponse(res, "success", "Post created successfully,", {
+      post: newPost,
     });
   } catch (err) {
     console.error("Error creating new post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/admin/posts/:id
+/**
+ * PUT api/admin/posts/:id
+ *
+ * Accepts `title?: string`, `content?: string`,
+ * excerpt?: string | null`, `imageId?: string | null`
+ * updates a post by `postId`.
+ * Returns the `updatedPost`.
+ */
 export const updatePostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const updates: PostUpdateInput = req.body;
   const { postId } = req.params;
-  if (!postId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  if (!postId || !updates)
+    return sendResponse(
+      res,
+      "error",
+      "Bad request: post missing parameter: post ID.",
+      undefined,
+      400,
+    );
   try {
     const update = { ...updates };
 
@@ -60,58 +93,65 @@ export const updatePostAdmin = async (
       data: update,
     });
 
-    res.json({
-      status: "success",
-      message: "The post was updated successfully.",
-      data: {
-        updatedPost,
-      },
+    return sendResponse(res, "success", "Post updated successfully,", {
+      post: updatedPost,
     });
   } catch (err) {
     console.error("Error updating post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
-
-// DELETE api/admin/posts/:id
+/**
+ * DELETE api/admin/posts/:id
+ *
+ * Accepts `postID: string`, deletes the post.
+ * Returns the `deletedPost`.
+ */
 export const deletePostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const postId = req.params.id;
   if (!postId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request missing parameter: post ID.",
+    );
   try {
-    const postToDelete = await prisma.post.delete({ where: { id: postId } });
-    if (!postToDelete)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post not found." });
+    const deletedPost = await prisma.post.delete({ where: { id: postId } });
+    if (!deletedPost) return sendResponse(res, "error", "Post not found.");
 
-    res.json({
-      status: "success",
-      message: "Post deleted successfully.",
-      data: {
-        postToDelete,
-      },
+    return sendResponse(res, "success", "Post deleted successfully.", {
+      post: deletedPost,
     });
   } catch (err) {
     console.error("Error deleting post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// GET api/admin/posts ||
-// GET /api/admin/posts?include=author, comments ||
-// GET /api/admin/posts?include=author,tags,category
+/**
+ * GET api/admin/posts ||
+ * GET /api/admin/posts?include=author, comments ||
+ * GET /api/admin/posts?include=author,tags,category
+ *
+ * Fetches all posts for admin. Unlike its sibling,
+ * does not filter the post by * `post.isPublished`.
+ * Returns all posts.
+ */
 export const getAllPostsAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
+  if (req.user?.role !== "ADMIN")
+    return sendResponse(
+      res,
+      "error",
+      "Bad request: You are not authorized for this operation.",
+      undefined,
+      401,
+    );
   try {
     const { include, where } = buildQueryOptions(req.query, true);
 
@@ -122,15 +162,7 @@ export const getAllPostsAdmin = async (
     });
 
     if (!Array.isArray(posts) || !posts.length)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No posts found." });
-    sendResponse(res, "success", "Posts retrieved successfully.", { posts });
-    // res.json({
-    //   status: "success",
-    //   message: "Posts fetched successfully.",
-    //   data: { posts },
-    // });
+      sendResponse(res, "success", "Posts retrieved successfully.", { posts });
   } catch (err) {
     console.error("Error getting all posts as an admin: ", err);
     return res.status(500);
@@ -138,10 +170,18 @@ export const getAllPostsAdmin = async (
   }
 };
 
-// GET api/admin/posts/:slug
+/**
+ * GET api/admin/posts/slug/:slug ||
+ * GET /api/admin/posts/slug/:slug?include=author, comments ||
+ * GET /api/admin/posts/slug/:slug?include=author,tags,category
+ *
+ * Fetches all posts for admin. Unlike its sibling,
+ * does not filter the post by * `post.isPublished`.
+ * Returns all posts.
+ */
 export const postBySlugAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const { postSlug } = req.params;
   if (!postSlug)
@@ -190,7 +230,7 @@ export const postBySlugAdmin = async (
 // PUT /api/admin/posts/:id/publish
 export const publishUnpublishPostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { postId } = req.params;
   if (!postId)
@@ -228,7 +268,7 @@ export const publishUnpublishPostAdmin = async (
 // POST api/admin/categories
 export const createCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { name, description } = req.body;
   if (!name)
@@ -263,7 +303,7 @@ export const createCategoryAdmin = async (
 // PUT api/admin/categories/:id
 export const updateCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   const { name, description } = req.body;
@@ -305,7 +345,7 @@ export const updateCategoryAdmin = async (
 // DELETE api/admin/categories/:id
 export const deleteCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   if (!id)
@@ -333,7 +373,7 @@ export const deleteCategoryAdmin = async (
 // POST api/admin/tags
 export const createTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { name } = req.body;
   if (!name)
@@ -363,7 +403,7 @@ export const createTagAdmin = async (
 // PUT api/admin/tags/:id
 export const updateTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   const { name } = req.body;
@@ -404,7 +444,7 @@ export const updateTagAdmin = async (
 // DELETE api/admin/tags/:id
 export const deleteTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   if (!id)
@@ -432,7 +472,7 @@ export const deleteTagAdmin = async (
 // PUT api/admin/comments/:id
 export const updateCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   const { content } = req.body;
@@ -469,7 +509,7 @@ export const updateCommentAdmin = async (
 // DELETE api/admin/comments/:id
 export const deleteCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
 
@@ -499,7 +539,7 @@ export const deleteCommentAdmin = async (
 // PUT api/admin/comments/:id/approval
 export const approveDisapproveCommentsAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { id } = req.params;
   const { isApproved } = req.body;
@@ -537,7 +577,7 @@ export const approveDisapproveCommentsAdmin = async (
 // POST api/admin/uplpad
 export const uploadPostImageAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   const { file } = req;
   if (!file)

@@ -8,7 +8,7 @@ import sendResponse from "../utils/responseUtil.js";
 /**
  * GET /api/posts
  * GET /api/posts?include=author,comments,category
- * Returns all published posts (optionally with relations)
+ * Returns all published posts (optionally with relations).
  */
 export const allPostsGetPublic = async (
   req: Request,
@@ -32,8 +32,9 @@ export const allPostsGetPublic = async (
   }
 };
 /**
- * GET api/posts/slug/:slug
- * Returns a single published post by slug
+ * GET api/post/slug/:slug
+ * GET /api/post/:slug?include=author,comments,category
+ * Returns a single published post by slug.
  */
 export const singlePostBySlugPublic = async (
   req: Request,
@@ -73,8 +74,9 @@ export const singlePostBySlugPublic = async (
 };
 
 /**
- * GET api/posts/id/:id
- * Returns a single published post by ID
+ * GET api/post/id/:id
+ * GET /api/post/:id?include=author,comments,category
+ * Returns a single published post by ID.
  */
 export const singlePostByIdPublic = async (
   req: Request,

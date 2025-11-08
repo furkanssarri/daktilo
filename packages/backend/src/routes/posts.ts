@@ -3,7 +3,7 @@ import { Router } from "express";
 import {
   allPostsGetPublic,
   singlePostBySlugPublic,
-  singlePostCommentsPublic,
+  // singlePostCommentsPublic,
   likePostUser,
   commentPostUser,
   singlePostByIdPublic,
@@ -17,7 +17,7 @@ const router = Router();
 router.get("/", allPostsGetPublic);
 router.get("/slug/:slug", singlePostBySlugPublic);
 router.get("/id/:id", singlePostByIdPublic);
-router.get("/:id/comments", singlePostCommentsPublic);
+// router.get("/:id/comments", singlePostCommentsPublic); // removed due to query builder refactor
 
 // Auth-protected routes
 router.post(
