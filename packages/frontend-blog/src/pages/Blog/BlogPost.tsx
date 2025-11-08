@@ -1,20 +1,21 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import type { PostType } from "@/types/PostTypes";
-// Mock data imports (adjust to your actual source)
-import data from "@/data.json"; // assume this has { posts: Post[], categories: Category[] }
+import type { Post as PostType } from "@prisma/client";
+import postApi from "@/api/postApi";
 
 const Post = () => {
-  const { postId } = useParams();
+  const { postSlug } = useParams();
   const [post, setPost] = useState<PostType | null>(null);
 
   useEffect(() => {
-    const foundPost = data.posts.find(
-      (p: PostType) => p.slug === postId || p.id === postId,
-    );
-    setPost(foundPost || null);
-  }, [postId]);
+    if (postSlug) {
+      postApi
+        .getBySlug(postSlug)
+        .then((data: PostType) => setPost(data))
+        .catch((err) => console.error("Failed to fetch the post: ", err));
+    }
+  }, [postSlug]);
 
   if (!post) {
     return (
@@ -46,13 +47,13 @@ const Post = () => {
               day: "numeric",
             })}
           </p>
-          {post.readTime && <p>• {post.readTime} min read</p>}
+          {/* {post.readTime && <p>• {post.readTime} min read</p>} */}
           <p>{post.categoryId}</p>
         </div>
       </header>
 
       {/* Featured Image */}
-      {post.imageUrl && (
+      {/* {post.imageUrl && (
         <div className="w-full max-h-[480px] overflow-hidden rounded-lg shadow-sm">
           <img
             src={post.imageUrl}
@@ -60,7 +61,7 @@ const Post = () => {
             className="w-full h-full object-cover"
           />
         </div>
-      )}
+      )} */}
 
       {/* Content Section */}
       <Card className="prose dark:prose-invert max-w-none mx-auto px-8 py-10 leading-relaxed">

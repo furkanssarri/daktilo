@@ -2,15 +2,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import CommentCard from "@/components/custom/CommentCard";
-
-import type { Comment } from "@/types/CommentTypes";
-import commentsData from "@/comments.json";
-
-type Data = {
-  comments: Comment[];
-};
+import type { Comment as CommentType } from "@prisma/client";
+import { useEffect, useState } from "react";
+import userApi from "@/api/userApi";
 
 const Profile = () => {
+  const [userComments, setUserComments] = useState<CommentType[] | []>([]);
+
+  useEffect(() => {
+    userApi
+      .getComments()
+      .then((data: CommentType[]) => setUserComments(data))
+      .catch((err) => console.error("Failed to fetch user comments: ", err));
+  }, []);
   // Example static user data
   const user = {
     name: "Furkan Sarı",
@@ -21,7 +25,6 @@ const Profile = () => {
   };
 
   // Example static comments data
-  const data: Data = commentsData;
   return (
     <main className="flex flex-col items-center justify-center min-h-[80vh] px-6">
       {/* Header */}
@@ -64,8 +67,8 @@ const Profile = () => {
           My Comments
         </h2>
 
-        {data.comments.length > 0 ? (
-          data.comments.map((comment: Comment) => (
+        {userComments.length > 0 ? (
+          userComments.map((comment: CommentType) => (
             <CommentCard key={comment.id} comment={comment} />
           ))
         ) : (

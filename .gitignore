@@ -4,6 +4,8 @@ data.json
 posts.json
 comments.json
 lineCount.txt
+lost-work.txt
+recovered.diff
 
 # Logs
 logs

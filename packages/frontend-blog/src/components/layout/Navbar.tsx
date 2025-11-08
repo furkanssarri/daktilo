@@ -11,14 +11,23 @@ import {
 import { Menu } from "lucide-react";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CommandPalette from "../custom/CommandPalette";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth/login");
+  };
 
   // Public page links (Account actions are handled in a dropdown)
   const links = [
@@ -62,29 +71,54 @@ function Navbar() {
                 className="absolute right-0 min-w-40 p-2 bg-background border border-border/30 rounded-md shadow-sm z-50"
               >
                 <div className="flex flex-col">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      to="/auth/login"
-                      className={cn(
-                        "block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors",
-                        location.pathname === "/auth/login" && "bg-muted",
-                      )}
-                    >
-                      Login
-                    </Link>
-                  </NavigationMenuLink>
+                  {isAuthenticated ? (
+                    <>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/profile"
+                          className={cn(
+                            "block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors",
+                            location.pathname === "/profile" && "bg-muted",
+                          )}
+                        >
+                          Profile
+                        </Link>
+                      </NavigationMenuLink>
 
-                  <NavigationMenuLink asChild>
-                    <Link
-                      to="/auth/signup"
-                      className={cn(
-                        "block px-3 py-2 rounded-md text-sm mt-1 hover:bg-muted transition-colors",
-                        location.pathname === "/auth/signup" && "bg-muted",
-                      )}
-                    >
-                      Signup
-                    </Link>
-                  </NavigationMenuLink>
+                      <button
+                        onClick={handleLogout}
+                        className="block text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/auth/login"
+                          className={cn(
+                            "block px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors",
+                            location.pathname === "/auth/login" && "bg-muted",
+                          )}
+                        >
+                          Login
+                        </Link>
+                      </NavigationMenuLink>
+
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/auth/signup"
+                          className={cn(
+                            "block px-3 py-2 rounded-md text-sm mt-1 hover:bg-muted transition-colors",
+                            location.pathname === "/auth/signup" && "bg-muted",
+                          )}
+                        >
+                          Signup
+                        </Link>
+                      </NavigationMenuLink>
+                    </>
+                  )}
                 </div>
               </NavigationMenuContent>
             </NavigationMenuItem>
