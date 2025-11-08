@@ -1,5 +1,5 @@
-export interface ResponseJsonObject {
+export interface ResponseJsonObject<T> {
   status: "success" | "error";
   message: string;
-  data?: {};
+  data?: T;
 }
