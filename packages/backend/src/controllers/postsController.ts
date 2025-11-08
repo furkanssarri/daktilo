@@ -42,13 +42,7 @@ export const singlePostBySlugPublic = async (
 ) => {
   const { slug } = req.params;
   if (!slug)
-    return sendResponse(
-      res,
-      "error",
-      "Bad request, missing post slug.",
-      undefined,
-      400,
-    );
+    return sendResponse(res, "error", "Bad request, missing post slug.");
   try {
     const { include, where } = buildQueryOptions(req.query, false);
 
@@ -126,8 +120,6 @@ export const likePostUser = async (
       res,
       "error",
       "Bad Request, post ID or user ID missing.",
-      undefined,
-      400,
     );
   try {
     const like = await prisma.like.create({
@@ -184,7 +176,6 @@ export const likePostUser = async (
       "success",
       "Like added to the post successfully.",
       { post: updatedPost },
-      200,
     );
   } catch (err) {
     console.error("Error performing like to post: ", err);

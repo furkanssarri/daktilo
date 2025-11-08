@@ -2,7 +2,14 @@ import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 import supabase from "../config/supabaseClient.js";
-import type { Post as PostType, User as UserType } from "@prisma/client";
+import type {
+  Post as PostType,
+  User as UserType,
+  Category as CategoryType,
+  Tag as TagType,
+  Comment as CommentType,
+  Media as MediaType,
+} from "@prisma/client";
 import { buildQueryOptions } from "../utils/includeBuilder.js";
 import sendResponse from "../utils/responseUtil.js";
 import generateUniqueSlug from "../utils/generateSlug.js";
@@ -227,361 +234,413 @@ export const postBySlugAdmin = async (
   }
 };
 
-// PUT /api/admin/posts/:id/publish
+/**
+ * PUT /api/admin/posts/:id/publish
+ *
+ * Publishes or unpublishes a post by toggling its `isPublished` status.
+ * Accepts `postId` as a route parameter.
+ * Returns the updated post.
+ */
 export const publishUnpublishPostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const { postId } = req.params;
-  if (!postId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  if (!postId) return sendResponse(res, "error", "Bad request.");
   try {
     const postToUpdate = await prisma.post.findUnique({
       where: { id: postId },
     });
 
     if (!postToUpdate)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post not found." });
+      return sendResponse(res, "error", "Post not found.", undefined, 404);
 
     const updatedPost = await prisma.post.update({
       where: { id: postId },
       data: {
-        isPublished: postToUpdate.isPublished,
+        isPublished: !postToUpdate.isPublished,
       },
     });
 
-    res.json({
-      status: "success",
-      message: "Post found successfully.",
-      data: { updatedPost },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Post publish status updated successfully.",
+      { post: updatedPost },
+    );
   } catch (err) {
     console.error("Error publishing post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// POST api/admin/categories
+/**
+ * POST api/admin/categories
+ *
+ * Creates a new category with the provided name and description.
+ * Accepts `name: string` and optional `description: string` in the request body.
+ * Returns the created category.
+ */
 export const createCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ category: CategoryType }>>,
 ) => {
   const { name, description } = req.body;
   if (!name)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, `name` field is requiredl.",
+    );
   try {
     const existingCategory = await prisma.category.findUnique({
       where: { name },
     });
 
     if (existingCategory)
-      return res
-        .status(409)
-        .json({ status: "error", message: "Category already exists." });
+      return sendResponse(
+        res,
+        "error",
+        "Category already exists.",
+        undefined,
+        409,
+      );
 
     const newCategory = await prisma.category.create({
       data: { name, description },
     });
 
-    res.json({
-      status: "success",
-      message: "Category created successfully.",
-      data: { newCategory },
+    return sendResponse(res, "success", "Category created successfully.", {
+      category: newCategory,
     });
   } catch (err) {
     console.error("Error creating category: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/admin/categories/:id
+/**
+ * PUT api/admin/categories/:id
+ *
+ * Updates a category by its ID.
+ * Accepts `name: string` and optional `description: string` in the request body.
+ * Returns the updated category.
+ */
 export const updateCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ category: CategoryType }>>,
 ) => {
   const { id } = req.params;
   const { name, description } = req.body;
   if (!id || !name)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameters: `postId` and/or `name`.",
+    );
   try {
     const duplicate = await prisma.category.findUnique({ where: { name } });
 
     if (duplicate && duplicate.id !== id)
-      return res
-        .status(409)
-        .json({ status: "error", message: "Category name already in use." });
+      return sendResponse(
+        res,
+        "error",
+        "Category name already in use.",
+        undefined,
+        409,
+      );
 
     const category = await prisma.category.findUnique({ where: { id } });
 
     if (!category)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Category not found." });
+      return sendResponse(res, "error", "Category not found.", undefined, 404);
 
     const updatedCategory = await prisma.category.update({
       where: { id },
       data: { name, description },
     });
 
-    res.json({
-      status: "success",
-      message: "Category updated successfully.",
-      data: { updatedCategory },
+    return sendResponse(res, "success", "Category updated successfully.", {
+      category: updatedCategory,
     });
   } catch (err) {
     console.error("Error updating category: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// DELETE api/admin/categories/:id
+/**
+ * DELETE api/admin/categories/:id
+ *
+ * Deletes a category by its ID.
+ * Returns the deleted category.
+ */
 export const deleteCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ category: CategoryType }>>,
 ) => {
   const { id } = req.params;
   if (!id)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameter: post ID.",
+    );
   try {
     const deletedCategory = await prisma.category.delete({ where: { id } });
 
-    res.json({
-      status: "success",
-      message: "Category deleted successfully.",
-      data: { deletedCategory },
+    return sendResponse(res, "success", "Category deleted successfully.", {
+      category: deletedCategory,
     });
   } catch (err: any) {
     console.error("Error deleting category: ", err);
     if (err.code === "P2025")
-      return res
-        .status(404)
-        .json({ status: "error", message: "Category not found." });
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+      return sendResponse(res, "error", "Category not found.", undefined, 404);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// POST api/admin/tags
+/**
+ * POST api/admin/tags
+ *
+ * Creates a new tag with the provided name.
+ * Accepts `name: string` in the request body.
+ * Returns the created tag.
+ */
 export const createTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ tag: TagType }>>,
 ) => {
   const { name } = req.body;
   if (!name)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request, `name` is required.");
   try {
     const existingTag = await prisma.tag.findUnique({ where: { name } });
     if (existingTag)
-      return res
-        .status(409)
-        .json({ status: "error", message: "Tag already exists." });
+      return sendResponse(res, "error", "Tag already exists.", undefined, 409);
 
     const newTag = await prisma.tag.create({ data: { name } });
 
-    res.json({
-      status: "success",
-      message: "Tag created successfully.",
-      data: { newTag },
+    return sendResponse(res, "success", "Tag created successfully.", {
+      tag: newTag,
     });
   } catch (err) {
     console.error("Error creating tag: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/admin/tags/:id
+/**
+ * PUT api/admin/tags/:id
+ *
+ * Updates a tag by its ID.
+ * Accepts `name: string` in the request body.
+ * Returns the updated tag.
+ */
 export const updateTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ tag: TagType }>>,
 ) => {
   const { id } = req.params;
   const { name } = req.body;
   if (!id || !name)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request, missing parameters.");
   try {
     const duplicate = await prisma.tag.findUnique({ where: { name } });
     if (duplicate && duplicate.id !== id)
-      return res
-        .status(409)
-        .json({ status: "error", message: "Tag name already in use." });
+      return sendResponse(
+        res,
+        "error",
+        "Tag name already in use.",
+        undefined,
+        409,
+      );
 
     const tag = await prisma.tag.findUnique({ where: { id } });
 
     if (!tag)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Tag not found." });
+      return sendResponse(res, "error", "Tag not found.", undefined, 404);
 
     const updatedTag = await prisma.tag.update({
       where: { id },
       data: { name },
     });
 
-    res.json({
-      status: "success",
-      message: "Tag updated successfully.",
-      data: { updatedTag },
+    return sendResponse(res, "success", "Tag updated successfully.", {
+      tag: updatedTag,
     });
   } catch (err) {
     console.error("Error updating tag: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// DELETE api/admin/tags/:id
+/**
+ * DELETE api/admin/tags/:id
+ *
+ * Deletes a tag by its ID.
+ * Returns the deleted tag.
+ */
 export const deleteTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ tag: TagType }>>,
 ) => {
   const { id } = req.params;
   if (!id)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameter: tag ID.",
+    );
   try {
     const deletedTag = await prisma.tag.delete({ where: { id } });
 
-    res.json({
-      status: "success",
-      message: "Tag deleted successfully.",
-      data: { deletedTag },
+    return sendResponse(res, "success", "Tag deleted successfully.", {
+      tag: deletedTag,
     });
   } catch (err: any) {
     console.error("Error deleting tag: ", err);
     if (err.code === "P2025")
-      return res
-        .status(404)
-        .json({ status: "error", message: "Tag not found." });
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+      return sendResponse(res, "error", "Tag not found.", undefined, 404);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/admin/comments/:id
+/**
+ * PUT api/admin/comments/:id
+ *
+ * Updates a comment's content by its ID.
+ * Accepts `content: string` in the request body.
+ * Returns the updated comment.
+ */
 export const updateCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const { id } = req.params;
   const { content } = req.body;
 
   if (!id || !content)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameters: comment ID or content.",
+    );
 
   try {
     const existingComment = await prisma.comment.findUnique({ where: { id } });
 
     if (!existingComment)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Comment not found." });
+      return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
     const updatedComment = await prisma.comment.update({
       where: { id },
       data: { content },
     });
 
-    res.json({
-      status: "success",
-      message: "Comment updated successfully by admin.",
-      data: { updatedComment },
+    return sendResponse(res, "success", "Comment updated successfully.", {
+      comment: updatedComment,
     });
   } catch (err) {
     console.error("Error updating comment as admin: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// DELETE api/admin/comments/:id
+/**
+ * DELETE api/admin/comments/:id
+ *
+ * Deletes a comment by its ID.
+ * Returns the deleted comment.
+ */
 export const deleteCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const { id } = req.params;
 
   if (!id)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameter: comment ID.",
+    );
 
   try {
     const deletedComment = await prisma.comment.delete({ where: { id } });
 
-    res.json({
-      status: "success",
-      message: "Comment deleted successfully by admin.",
-      data: { deletedComment },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Comment deleted successfully by admin.",
+      { comment: deletedComment },
+    );
   } catch (err: any) {
     console.error("Error deleting comment as admin: ", err);
     if (err.code === "P2025")
-      return res
-        .status(404)
-        .json({ status: "error", message: "Comment not found." });
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+      return sendResponse(res, "error", "Comment not found.", undefined, 404);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/admin/comments/:id/approval
+/**
+ * PUT api/admin/comments/:id/approval
+ *
+ * Approves or disapproves a comment by its ID.
+ * Accepts `isApproved: boolean` in the request body.
+ * Returns the updated comment.
+ */
 export const approveDisapproveCommentsAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const { id } = req.params;
   const { isApproved } = req.body;
 
   if (!id || typeof isApproved !== "boolean")
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing parameter: comment ID.",
+    );
 
   try {
     const comment = await prisma.comment.findUnique({ where: { id } });
 
     if (!comment)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Comment not found." });
+      return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
     const updatedComment = await prisma.comment.update({
       where: { id },
       data: { isApproved },
     });
 
-    res.json({
-      status: "success",
-      message: `Comment ${
-        isApproved ? "approved" : "disapproved"
-      } successfully.`,
-      data: { updatedComment },
-    });
+    return sendResponse(
+      res,
+      "success",
+      `Comment ${isApproved ? "approved" : "disapproved"} successfully.`,
+      { comment: updatedComment },
+    );
   } catch (err) {
     console.error("Error approving/disapproving comment: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
-// POST api/admin/uplpad
+
+/**
+ * POST api/admin/upload
+ *
+ * Uploads a post image to Supabase storage and creates a media record.
+ * Accepts a file upload via multipart/form-data.
+ * Returns the created media object.
+ */
 export const uploadPostImageAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
+  res: Response<ResponseJsonObject<{ media: MediaType }>>,
 ) => {
   const { file } = req;
   if (!file)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request, no file uploaded.");
   try {
     const sanitizedName = file.originalname.replace(/\s+/g, "_");
     const storageName = `${Date.now()}_${sanitizedName}`;
@@ -597,9 +656,13 @@ export const uploadPostImageAdmin = async (
 
     if (uploadError) {
       console.error("Error uploading image to the cloud: ", uploadError);
-      return res
-        .status(500)
-        .json({ status: "error", message: "Internal Server Error." });
+      return sendResponse(
+        res,
+        "error",
+        "Internal Server Error.",
+        undefined,
+        500,
+      );
     }
 
     // get public URL
@@ -618,15 +681,11 @@ export const uploadPostImageAdmin = async (
       },
     });
 
-    res.json({
-      status: "success",
-      message: "Image uploaded successfully.",
-      data: { newMedia },
+    return sendResponse(res, "success", "Image uploaded successfully.", {
+      media: newMedia,
     });
   } catch (err) {
     console.error("Error uploading post image: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };

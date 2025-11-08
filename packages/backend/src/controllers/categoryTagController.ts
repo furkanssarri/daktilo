@@ -1,75 +1,81 @@
 import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
+import sendResponse from "../utils/responseUtil.js";
+import type { Category as CategoryType, Tag as TagType } from "@prisma/client";
 
-// api/categories
+/**
+ * GET /api/categories
+ *
+ * Retrieves all categories.
+ * Returns an array of categories.
+ */
 export const getCategoriesPublic = async (
   _req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ categories: CategoryType[] }>>,
 ) => {
   try {
-    const allCategories = await prisma.category.findMany();
-    if (!allCategories)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No category found." });
+    const categories = await prisma.category.findMany();
 
-    res.json({
-      status: "success",
-      message: "Found categories.",
-      data: {
-        allCategories,
-      },
+    if (!categories.length)
+      return sendResponse(res, "error", "No categories found.", undefined, 404);
+
+    return sendResponse(res, "success", "Categories retrieved successfully.", {
+      categories,
     });
   } catch (err) {
-    console.error("Error getting the categories: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting the categories:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// api/categories/:name
+/**
+ * GET /api/categories/:id
+ *
+ * Retrieves a single category by its ID.
+ * Returns the category if found.
+ */
 export const getCategoryPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ category: CategoryType }>>,
 ) => {
   const { categoryId } = req.params;
+
   if (!categoryId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing category ID.");
+
   try {
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
     });
 
     if (!category)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Category not found." });
+      return sendResponse(res, "error", "Category not found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Category found.",
-      data: {
-        category,
-      },
+    return sendResponse(res, "success", "Category retrieved successfully.", {
+      category,
     });
   } catch (err) {
-    console.error("Error getting the category: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting the category:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// api/categories/:name/posts
+/**
+ * GET /api/categories/:name/posts
+ *
+ * Retrieves all published posts associated with a specific category.
+ * Returns the category with its posts.
+ */
 export const getPostsByCategoryPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ category: CategoryType }>>,
 ) => {
   const { categoryName } = req.params;
+
   if (!categoryName)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing category name.");
+
   try {
     const category = await prisma.category.findUnique({
       where: { name: categoryName },
@@ -89,94 +95,108 @@ export const getPostsByCategoryPublic = async (
     });
 
     if (!category)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Posts by category not found." });
+      return sendResponse(
+        res,
+        "error",
+        "Category or posts not found.",
+        undefined,
+        404,
+      );
 
-    res.json({
-      status: "success",
-      message: "Posts by category found.",
-      data: {
+    return sendResponse(
+      res,
+      "success",
+      "Posts by category retrieved successfully.",
+      {
         category,
       },
-    });
+    );
   } catch (err) {
-    console.error("Error getting the posts by category: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting posts by category:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// api/tags
+/**
+ * GET /api/tags
+ *
+ * Retrieves all tags.
+ * Returns an array of tags.
+ */
 export const getTagsPublic = async (
   _req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ tags: TagType[] }>>,
 ) => {
   try {
-    const allTags = await prisma.tag.findMany();
+    const tags = await prisma.tag.findMany();
 
-    if (!allTags)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Tags not found." });
+    if (!tags.length)
+      return sendResponse(res, "error", "No tags found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Tags found.",
-      data: {
-        allTags,
-      },
+    return sendResponse(res, "success", "Tags retrieved successfully.", {
+      tags,
     });
   } catch (err) {
-    console.error("Error getting the tags: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting the tags:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// api/tags/:name
+/**
+ * GET /api/tags/:id
+ *
+ * Retrieves a single tag by its ID.
+ * Returns the tag if found.
+ */
 export const getTagPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ tag: TagType }>>,
 ) => {
   const { tagId } = req.params;
-  if (!tagId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+
+  if (!tagId) return sendResponse(res, "error", "Bad request: missing tag ID.");
+
   try {
-    const tag = await prisma.tag.findUnique({ where: { id: tagId } });
-
-    if (!tag)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Tag not found." });
-
-    res.json({
-      status: "success",
-      message: "Tag found.",
-      data: {
-        tag,
+    const tag = await prisma.tag.findUnique({
+      where: { id: tagId },
+      include: {
+        posts: {
+          where: { isPublished: true },
+          include: {
+            author: true,
+            comments: true,
+            _count: { select: { likes: true, comments: true } },
+          },
+        },
       },
     });
+
+    if (!tag)
+      return sendResponse(res, "error", "Tag not found.", undefined, 404);
+
+    return sendResponse(res, "success", "Tag retrieved successfully.", { tag });
   } catch (err) {
-    console.error("Error getting the tag: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting the tag:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// api/tags/:name/posts
+/**
+ * GET /api/tags/:name/posts
+ *
+ * Retrieves all published posts associated with a specific tag.
+ * Returns the tag with its posts.
+ */
 export const getPostsByTagPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ tag: TagType }>>,
 ) => {
   const { tagName } = req.params;
+
   if (!tagName)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing tag name.");
+
   try {
-    // logic here
     const tag = await prisma.tag.findUnique({
       where: { name: tagName },
       include: {
@@ -195,21 +215,22 @@ export const getPostsByTagPublic = async (
     });
 
     if (!tag)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post by tag not found." });
+      return sendResponse(
+        res,
+        "error",
+        "Tag or posts not found.",
+        undefined,
+        404,
+      );
 
-    res.json({
-      status: "success",
-      message: "Post by tag found.",
-      data: {
-        tag,
-      },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Posts by tag retrieved successfully.",
+      { tag },
+    );
   } catch (err) {
-    console.error("Error getting the post by tag: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting posts by tag:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
