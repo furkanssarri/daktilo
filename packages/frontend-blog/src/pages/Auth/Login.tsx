@@ -1,16 +1,35 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import authApi from "@/api/authApi";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate(); // hook for redirecting after login
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // handle login logic here
+
+    try {
+      const res = await authApi.login({ email, password });
+      // assuming apiRequest() returns the parsed JSON from backend
+      if (
+        res.status === "success" &&
+        res.data?.accessToken &&
+        res.data?.refreshToken
+      ) {
+        localStorage.setItem("token", res.data.accessToken);
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+        navigate("/api/users/me");
+      } else {
+        console.error("Login failed:", res.message);
+      }
+    } catch (err) {
+      console.error("Error logging in:", err);
+    }
   };
 
   return (

@@ -5,7 +5,7 @@ import Home from "@/pages/Home";
 import Blog from "@/pages/Blog/Blog";
 import About from "@/pages/About/About";
 import Contact from "@/pages/Contact/Contact";
-import Post from "@/pages/Blog/Post.tsx";
+import Post from "@/pages/Blog/BlogPost";
 import NotFound from "@/pages/NotFound/NotFound";
 import Signup from "@/pages/Auth/Signup";
 import Login from "@/pages/Auth/Login";

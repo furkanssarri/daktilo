@@ -1,24 +1,45 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import authApi from "@/api/authApi";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // handle signup logic here
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await authApi.signup(formData);
+
+      if (res.status === "success") {
+        setSuccess(res.message || "Signup successful!");
+        navigate("/auth/login");
+      } else {
+        setError(res.message || "Signup failed.");
+      }
+    } catch (err: unknown) {
+      console.error("Signup error:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    }
   };
 
   return (
@@ -39,17 +60,17 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
           <div>
             <label
-              htmlFor="name"
+              htmlFor="username"
               className="block text-sm font-medium mb-1 text-muted-foreground"
             >
               Name
             </label>
             <Input
-              id="name"
-              name="name"
+              id="username"
+              name="username"
               type="text"
               placeholder="John Doe"
-              value={formData.name}
+              value={formData.username}
               onChange={handleChange}
               required
               className="focus:ring-2 focus:ring-primary"
@@ -93,6 +114,9 @@ const Signup = () => {
               className="focus:ring-2 focus:ring-primary"
             />
           </div>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {success && <p className="text-green-500 text-sm">{success}</p>}
 
           <Button
             type="submit"
