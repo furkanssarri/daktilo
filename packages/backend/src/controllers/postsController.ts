@@ -1,226 +1,151 @@
 import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
+import { Post } from "@prisma/client";
+import { buildQueryOptions } from "../utils/includeBuilder.js";
+import sendResponse from "../utils/responseUtil.js";
 
-// GET api/posts/
+/**
+ * GET /api/posts
+ * GET /api/posts?include=author,comments,category
+ * Returns all published posts (optionally with relations)
+ */
 export const allPostsGetPublic = async (
-  _req: Request,
-  res: Response<ResponseJsonObject>,
+  req: Request,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   try {
+    const { include, where } = buildQueryOptions(req.query, false);
     const posts = await prisma.post.findMany({
-      where: { isPublished: true },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
+      where,
       orderBy: { createdAt: "desc" },
+      include,
     });
 
     if (Array.isArray(posts) && !posts.length)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No posts found." });
+      return sendResponse(res, "error", "No posts found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Posts found.",
-      data: { posts },
-    });
+    sendResponse(res, "success", "Posts retrieved successfully.", { posts });
   } catch (err) {
     console.error("Error getting all posts: ", err);
-    res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Failed to fetch posts.", undefined, 500);
   }
 };
-
-// GET api/posts/:slug
+/**
+ * GET api/posts/slug/:slug
+ * Returns a single published post by slug
+ */
 export const singlePostBySlugPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ post: Post }>>,
 ) => {
-  const { postSlug } = req.params;
-  if (!postSlug)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  const { slug } = req.params;
+  if (!slug)
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, missing post slug.",
+      undefined,
+      400,
+    );
   try {
-    const post = await prisma.post.findUnique({
-      where: { slug: postSlug, isPublished: true },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
+    const { include, where } = buildQueryOptions(req.query, false);
+
+    const post = await prisma.post.findFirst({
+      where,
+      include,
     });
 
     if (!post)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post not found." });
+      return sendResponse(res, "error", "Post not found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Post found.",
-      data: {
-        post: post,
-      },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Post retrieved successfully.",
+      { post },
+      200,
+    );
   } catch (err) {
     console.error("Error getting the post: ", err);
-    res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Failed to fetch posts.", undefined, 500);
   }
 };
 
-// GET api/posts/:id/comments
-export const singlePostCommentsPublic = async (
+/**
+ * GET api/posts/id/:id
+ * Returns a single published post by ID
+ */
+export const singlePostByIdPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ post: Post }>>,
 ) => {
-  const { postId } = req.params;
-  if (!postId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  const { id } = req.params;
+  if (!id)
+    return sendResponse(
+      res,
+      "error",
+      "Bad request, ID is missing.",
+      undefined,
+      400,
+    );
+
   try {
-    const comments = await prisma.comment.findMany({
-      where: { postId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        author: {
-          select: { id: true, username: true, avatar: true },
-        },
-      },
-    });
-    const numberOfComments = await prisma.comment.count({ where: { postId } });
-    if (!numberOfComments) return res.status(404);
+    const { include, where } = buildQueryOptions(req.query, false);
 
-    if (!comments.length)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No comments yet." });
-
-    res.json({
-      status: "success",
-      message: `Found ${numberOfComments} comments.`,
-      data: {
-        comments,
-      },
+    const post = await prisma.post.findFirst({
+      where,
+      include,
     });
+
+    if (!post)
+      return sendResponse(res, "error", "Post not found.", undefined, 404);
+
+    sendResponse(res, "success", "Post retrieved successfully.", { post }, 200);
   } catch (err) {
-    console.error("Error getting the post's comments: ", err);
-    res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting the post: ", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// POST api/posts/:id/like
+/**
+ * POST api/posts/:id/like
+ * Creates a Like record for the post by `id` with `userId`
+ * Returns the `updatedPost` post.
+ */
 export const likePostUser = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ post: Post }>>,
 ) => {
   const userId = req.user?.id;
-  const { postId } = req.params;
-  if (!postId || !userId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  const { id } = req.params;
+  if (!id || !userId)
+    return sendResponse(
+      res,
+      "error",
+      "Bad Request, post ID or user ID missing.",
+      undefined,
+      400,
+    );
   try {
     const like = await prisma.like.create({
       data: {
         authorId: userId,
-        postId,
+        postId: id,
       },
     });
 
     if (!like)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No such post exists." });
+      return sendResponse(
+        res,
+        "error",
+        "Failed to like the post.",
+        undefined,
+        404,
+      );
 
-    const updatedPost = await prisma.post.findUnique({
-      where: { id: postId },
-      include: {
-        author: {
-          select: { id: true, username: true, avatar: true },
-        },
-        comments: {
-          select: {
-            content: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-          include: {
-            author: {
-              select: { username: true, avatar: true },
-            },
-          },
-        },
-        _count: {
-          select: { likes: true, comments: true },
-        },
-      },
-    });
-
-    res.json({
-      status: "success",
-      message: `Like added to the post: ${postId}.`,
-      data: {
-        updatedPost,
-      },
-    });
-  } catch (err) {
-    console.error("Error performing like to post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
-  }
-};
-
-// POST api/posts/:id/comment
-export const commentPostUser = async (
-  req: Request,
-  res: Response<ResponseJsonObject>,
-) => {
-  const userId = req.user?.id;
-  const { postId } = req.params;
-  if (!postId || !userId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
-  try {
-    const comment = await prisma.comment.create({
-      data: {
-        content: "test",
-        postId,
-        authorId: userId,
-      },
-    });
-
-    if (!comment)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post not found." });
-
-    const updatedPost = await prisma.post.findUnique({
-      where: { id: postId },
+    const updatedPost = await prisma.post.findFirst({
+      where: { id: id },
       include: {
         author: {
           select: { id: true, username: true, avatar: true },
@@ -243,17 +168,107 @@ export const commentPostUser = async (
       },
     });
 
-    res.json({
-      status: "success",
-      message: "Comment posted successfully.",
+    if (!updatedPost)
+      return sendResponse(
+        res,
+        "error",
+        "Failed to like the post, the post was not found.",
+        undefined,
+        404,
+      );
+
+    return sendResponse(
+      res,
+      "success",
+      "Like added to the post successfully.",
+      { post: updatedPost },
+      200,
+    );
+  } catch (err) {
+    console.error("Error performing like to post: ", err);
+    return sendResponse(res, "error", "Internal Server Error", undefined, 500);
+  }
+};
+/**
+ * POST api/posts/:id/comment
+ * Creates a Comment record for the post by `id` with `userId`
+ * Returns the `updatedPost` post.
+ */
+export const commentPostUser = async (
+  req: Request,
+  res: Response<ResponseJsonObject<{ post: Post }>>,
+) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
+  if (!id || !userId)
+    return sendResponse(
+      res,
+      "error",
+      "Bad Request, post ID or user ID missing.",
+      undefined,
+      400,
+    );
+
+  try {
+    const comment = await prisma.comment.create({
       data: {
-        updatedPost,
+        content: "test",
+        postId: id,
+        authorId: userId,
       },
     });
+
+    if (!comment)
+      return sendResponse(
+        res,
+        "error",
+        "Failed to comment to the post.",
+        undefined,
+        404,
+      );
+
+    const updatedPost = await prisma.post.findFirst({
+      where: { id: id },
+      include: {
+        author: {
+          select: { id: true, username: true, avatar: true },
+        },
+        comments: {
+          select: {
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          include: {
+            author: {
+              select: { id: true, username: true, avatar: true },
+            },
+          },
+        },
+        _count: {
+          select: { likes: true, comments: true },
+        },
+      },
+    });
+
+    if (!updatedPost)
+      return sendResponse(
+        res,
+        "error",
+        "Failed to comment to the post, the post was not found.",
+        undefined,
+        404,
+      );
+
+    return sendResponse(
+      res,
+      "success",
+      "Comment added to the post successfully.",
+      { post: updatedPost },
+      200,
+    );
   } catch (err) {
     console.error("Error posting comment to the post: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error", undefined, 500);
   }
 };

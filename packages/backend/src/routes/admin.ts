@@ -3,7 +3,7 @@ import {
   createNewPostAdmin,
   deletePostAdmin,
   updatePostAdmin,
-  allPostsAdmin,
+  getAllPostsAdmin,
   postBySlugAdmin,
   publishUnpublishPostAdmin,
   createCategoryAdmin,
@@ -41,7 +41,7 @@ router.post("/posts", createNewPostAdmin);
 router.put("/posts/:id", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
-router.get("/posts", allPostsAdmin);
+router.get("/posts", getAllPostsAdmin);
 router.get("/posts/:slug", postBySlugAdmin);
 
 router.put("/posts/:id/publish", publishUnpublishPostAdmin);

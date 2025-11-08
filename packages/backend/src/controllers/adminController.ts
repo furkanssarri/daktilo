@@ -3,6 +3,8 @@ import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
 import supabase from "../config/supabaseClient.js";
 import type { Post } from "@prisma/client";
+import { buildQueryOptions } from "../utils/includeBuilder.js";
+import sendResponse from "../utils/responseUtil.js";
 
 type PostUpdateInput = Partial<
   Pick<Post, "title" | "content" | "excerpt" | "slug">
@@ -11,7 +13,7 @@ type PostUpdateInput = Partial<
 // POST api/admin/posts
 export const createNewPostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   if (!req.user)
     return res.status(400).json({ status: "error", message: "Bad request." });
@@ -44,7 +46,7 @@ export const createNewPostAdmin = async (
 // PUT api/admin/posts/:id
 export const updatePostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const updates: PostUpdateInput = req.body;
   const { postId } = req.params;
@@ -76,7 +78,7 @@ export const updatePostAdmin = async (
 // DELETE api/admin/posts/:id
 export const deletePostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const postId = req.params.id;
   if (!postId)
@@ -103,54 +105,43 @@ export const deletePostAdmin = async (
   }
 };
 
-// GET api/admin/posts
-export const allPostsAdmin = async (
-  _req: Request,
-  res: Response<ResponseJsonObject>,
+// GET api/admin/posts ||
+// GET /api/admin/posts?include=author, comments ||
+// GET /api/admin/posts?include=author,tags,category
+export const getAllPostsAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   try {
+    const { include, where } = buildQueryOptions(req.query, true);
+
     const posts = await prisma.post.findMany({
-      include: {
-        author: {
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            avatarId: true,
-          },
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
+      where,
       orderBy: { createdAt: "desc" },
+      include,
     });
 
     if (!Array.isArray(posts) || !posts.length)
       return res
         .status(404)
         .json({ status: "error", message: "No posts found." });
-
-    res.json({
-      status: "success",
-      message: "Posts fetched successfully.",
-      data: { posts },
-    });
+    sendResponse(res, "success", "Posts retrieved successfully.", { posts });
+    // res.json({
+    //   status: "success",
+    //   message: "Posts fetched successfully.",
+    //   data: { posts },
+    // });
   } catch (err) {
     console.error("Error getting all posts as an admin: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return res.status(500);
+    sendResponse(res, "error", "Failed to fetch posts,", undefined, 500);
   }
 };
 
 // GET api/admin/posts/:slug
 export const postBySlugAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { postSlug } = req.params;
   if (!postSlug)
@@ -199,7 +190,7 @@ export const postBySlugAdmin = async (
 // PUT /api/admin/posts/:id/publish
 export const publishUnpublishPostAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { postId } = req.params;
   if (!postId)
@@ -237,7 +228,7 @@ export const publishUnpublishPostAdmin = async (
 // POST api/admin/categories
 export const createCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { name, description } = req.body;
   if (!name)
@@ -272,7 +263,7 @@ export const createCategoryAdmin = async (
 // PUT api/admin/categories/:id
 export const updateCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   const { name, description } = req.body;
@@ -314,7 +305,7 @@ export const updateCategoryAdmin = async (
 // DELETE api/admin/categories/:id
 export const deleteCategoryAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   if (!id)
@@ -342,7 +333,7 @@ export const deleteCategoryAdmin = async (
 // POST api/admin/tags
 export const createTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { name } = req.body;
   if (!name)
@@ -372,7 +363,7 @@ export const createTagAdmin = async (
 // PUT api/admin/tags/:id
 export const updateTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   const { name } = req.body;
@@ -413,7 +404,7 @@ export const updateTagAdmin = async (
 // DELETE api/admin/tags/:id
 export const deleteTagAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   if (!id)
@@ -441,7 +432,7 @@ export const deleteTagAdmin = async (
 // PUT api/admin/comments/:id
 export const updateCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   const { content } = req.body;
@@ -478,7 +469,7 @@ export const updateCommentAdmin = async (
 // DELETE api/admin/comments/:id
 export const deleteCommentAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
 
@@ -508,7 +499,7 @@ export const deleteCommentAdmin = async (
 // PUT api/admin/comments/:id/approval
 export const approveDisapproveCommentsAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { id } = req.params;
   const { isApproved } = req.body;
@@ -531,7 +522,9 @@ export const approveDisapproveCommentsAdmin = async (
 
     res.json({
       status: "success",
-      message: `Comment ${isApproved ? "approved" : "disapproved"} successfully.`,
+      message: `Comment ${
+        isApproved ? "approved" : "disapproved"
+      } successfully.`,
       data: { updatedComment },
     });
   } catch (err) {
@@ -544,7 +537,7 @@ export const approveDisapproveCommentsAdmin = async (
 // POST api/admin/uplpad
 export const uploadPostImageAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
 ) => {
   const { file } = req;
   if (!file)

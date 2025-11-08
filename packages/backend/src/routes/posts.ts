@@ -1,3 +1,4 @@
+// packages/backend/src/routes/posts.ts
 import { Router } from "express";
 import {
   allPostsGetPublic,
@@ -5,17 +6,20 @@ import {
   singlePostCommentsPublic,
   likePostUser,
   commentPostUser,
+  singlePostByIdPublic,
 } from "../controllers/postsController.js";
 import { requireAuth } from "../middlewares/requireAuth.js";
 import { requireRole } from "../middlewares/requireRole.js";
 
 const router = Router();
 
+// Public routes
 router.get("/", allPostsGetPublic);
-router.get("/:slug", singlePostBySlugPublic);
+router.get("/slug/:slug", singlePostBySlugPublic);
+router.get("/id/:id", singlePostByIdPublic);
 router.get("/:id/comments", singlePostCommentsPublic);
 
-// Auth protected routes
+// Auth-protected routes
 router.post(
   "/:id/like",
   requireAuth,
@@ -29,4 +33,5 @@ router.post(
   requireRole("ADMIN", "USER"),
   commentPostUser,
 );
+
 export default router;

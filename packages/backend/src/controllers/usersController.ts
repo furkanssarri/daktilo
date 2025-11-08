@@ -8,24 +8,35 @@ type UserUpdateInput = Partial<
   Pick<User, "email" | "password" | "role" | "username" | "avatarId">
 >;
 
-// GET api/users/me
+// GET api/users/me & GET /api/users/me?include=comments
 export const userGetPublic = async (
   req: Request,
   res: Response<ResponseJsonObject>,
 ) => {
-  const userId = req.params.id || req.user?.id;
-  if (!userId)
+  const includeComments = req.query.include === "comments";
+  if (!req.user)
     return res.status(400).json({ status: "error", message: "Bad request." });
   try {
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: req.user.id },
       select: {
-        id: false,
+        id: true,
         username: true,
+        email: true,
         avatarId: true,
-        role: true,
-        // gate sensitive info
-        email: req.user?.id === userId,
+        createdAt: true,
+        ...(includeComments && {
+          comments: {
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+              isApproved: true,
+            },
+          },
+        }),
       },
     });
     if (!user)
@@ -44,42 +55,6 @@ export const userGetPublic = async (
       status: "error",
       message: "Internal Server Error.",
     });
-  }
-};
-
-// GET api/users/me/comments
-export const userGetCommentsPublic = async (
-  req: Request,
-  res: Response<ResponseJsonObject>,
-) => {
-  const userId = req.user?.id;
-  if (!userId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
-  try {
-    const userComments = await prisma.comment.findMany({
-      where: { authorId: userId },
-      include: {
-        post: {
-          select: { title: true },
-        },
-      },
-    });
-
-    if (!userComments)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No comments found." });
-
-    res.json({
-      status: "success",
-      message: "Found user comments.",
-      data: {
-        userComments,
-      },
-    });
-  } catch (err) {
-    console.error("Error getting user comments: ", err);
-    return res.json({ status: "error", message: "Internal Server Error." });
   }
 };
 
