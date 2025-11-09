@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ModeToggle from "@/components/ui/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,15 +14,14 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import CommandPalette from "../custom/CommandPalette";
-import { useState } from "react";
+import CommandPalette from "@/components/custom/CommandPalette";
 import { useAuth } from "@/context/AuthContext";
 
 function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
-
+  const [isDropDownOpen, setIsDropDownOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -62,10 +62,12 @@ function Navbar() {
 
             {/* Account dropdown — anchored to this item */}
             <NavigationMenuItem className="relative">
-              <NavigationMenuTrigger className="text-sm right-0 font-medium text-muted-foreground hover:text-foreground px-3 py-1">
+              <NavigationMenuTrigger
+                onClick={() => setIsDropDownOpen(!isDropDownOpen)}
+                className="text-sm right-0 font-medium text-muted-foreground hover:text-foreground px-3 py-1"
+              >
                 Account
               </NavigationMenuTrigger>
-
               <NavigationMenuContent
                 id="dropdown"
                 className="absolute right-0 min-w-40 p-2 bg-background border border-border/30 rounded-md shadow-sm z-50"

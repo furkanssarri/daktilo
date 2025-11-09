@@ -9,7 +9,7 @@ const generateToken = (userId: string, userEmail: string) => {
     throw new Error("JWT secrets are not defined.");
 
   const accessToken = jwt.sign({ id: userId, email: userEmail }, accessSecret, {
-    expiresIn: "15m", // shorter-lived access token
+    expiresIn: "4h", // shorter-lived access token
   });
 
   const refreshToken = jwt.sign(
