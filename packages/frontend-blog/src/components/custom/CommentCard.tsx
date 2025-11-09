@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { Card } from "../ui/card";
-import type { Comment as CommentType } from "@prisma/client";
+import type { FrontendComment } from "@/types/EntityTypes";
 
-const CommentCard = ({ comment }: { comment: CommentType }) => {
+const CommentCard = ({ comment }: { comment: FrontendComment }) => {
   const [expanded, setExpanded] = useState(false);
   const MAX_LENGTH = 120; // characters before truncation
 
@@ -24,6 +25,12 @@ const CommentCard = ({ comment }: { comment: CommentType }) => {
         </span>
       </div>
 
+      <Avatar className="h-12 w-12 shrink-0">
+        <AvatarImage
+          src={comment.author?.avatar || "/user.jpg"}
+          alt={comment.author?.username || "Anonymous"}
+        />
+      </Avatar>
       <p className="text-sm text-muted-foreground leading-relaxed">
         {displayText}
       </p>

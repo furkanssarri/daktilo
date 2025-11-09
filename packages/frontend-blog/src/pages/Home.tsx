@@ -1,23 +1,25 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import { SocialButtons } from "@/components/custom/SocialButtons";
 
+import userApi from "@/api/userApi";
+
+import type { UserWithRelations } from "@/types/EntityTypes";
+
 export default function Home() {
-  const dummyPosts = [
-    {
-      title: "Understanding React Context in 2025",
-      date: "03/11/2025",
-    },
-    {
-      title: "A Beginner's Guide to TypeScript for Web Developers",
-      date: "29/10/2025",
-    },
-    {
-      title: "Why You Should Learn Tailwind CSS This Year",
-      date: "15/09/2025",
-    },
-  ];
+  const [user, setUser] = useState<UserWithRelations | null>(null);
+
+  const userId = useParams();
+  useEffect(() => {
+    if (userId) {
+      userApi
+        .getMe()
+        .then((data) => setUser(data))
+        .catch((err) => console.error("Failed to fetch user: ", err));
+    }
+  }, [userId]);
 
   return (
     <div className="space-y-24 border rounded-sm mt-5">
@@ -62,28 +64,30 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col space-y-6">
-          {dummyPosts.map((post) => (
-            <Card
-              key={post.title}
-              className="w-full hover:shadow-md transition-shadow"
-            >
-              <CardHeader>
-                <CardTitle>
-                  <Link
-                    to="#"
-                    className="hover:underline text-lg font-semibold leading-snug"
-                  >
-                    {post.title}
-                  </Link>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Published on {post.date}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {Array.isArray(user?.posts) &&
+            user.posts.map((post) => (
+              <Card
+                key={post.id}
+                className="w-full hover:shadow-md transition-shadow"
+              >
+                <CardHeader>
+                  <CardTitle>
+                    <Link
+                      to={`/posts/id/${post.id}`}
+                      className="hover:underline text-lg font-semibold leading-snug"
+                    >
+                      {post.title}
+                    </Link>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Published on{" "}
+                    {new Date(post.createdAt).toLocaleDateString("tr")}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       </section>
     </div>

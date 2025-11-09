@@ -1,29 +1,35 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-// import CommentCard from "@/components/custom/CommentCard";
 import postApi from "@/api/postApi";
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import CommentCard from "@/components/custom/CommentCard";
 
-import type { PostWithRelations } from "@/types/EntityTypes";
-import type { Comment as CommentType } from "@prisma/client";
-
-type FrontendComment = CommentType & {
-  author?: { id: string; username: string; avatar: string | null };
-};
+import type { FrontendComment, PostWithRelations } from "@/types/EntityTypes";
+import NotFoundElement from "@/components/custom/NotFoundElement";
 
 const BlogPost = () => {
   const { postId } = useParams();
   const [post, setPost] = useState<PostWithRelations | null>(null);
   const [comments, setComments] = useState<FrontendComment[]>([]);
+  const [newComment, setNewComment] = useState("");
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    console.log("Submitting comment: ", newComment);
+    // TODO: integrate postApi.commentOnPost(post.id, newComment)
+    if (post) {
+      postApi.commentOnPost(post?.id, newComment);
+      setNewComment("");
+    }
+  };
 
   useEffect(() => {
     if (postId) {
       postApi
-        .getById(postId)
+        .getBySlug(postId)
         .then((post) => {
           setPost(post);
-          console.log(post);
         })
         .catch((err) => console.error("Failed to fetch the post: ", err));
     }
@@ -33,32 +39,21 @@ const BlogPost = () => {
     if (post) {
       setComments(post.comments ?? []);
     }
-    console.log(comments);
   }, [post, comments]);
 
   if (!post) {
-    return (
-      <div className="min-h-[60vh] flex flex-col justify-center items-center text-center space-y-4">
-        <h1 className="text-4xl font-bold">Post Not Found</h1>
-        <p className="text-muted-foreground">
-          Sorry, we couldn’t find the article you’re looking for.
-        </p>
-        <Link to="/blog" className="text-primary hover:underline">
-          Back to Blog
-        </Link>
-      </div>
-    );
+    return <NotFoundElement />;
   }
 
   return (
-    <article className="max-w-5xl mx-auto px-6 py-16 space-y-12">
+    <article className="mx-auto max-w-5xl space-y-12 px-6 py-16">
       {/* Header Section */}
       <header className="space-y-6 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
+        <h1 className="text-4xl leading-tight font-bold sm:text-5xl">
           {post.title}
         </h1>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 text-sm sm:flex-row">
           <p>
             {new Date(post.createdAt).toLocaleDateString("en-US", {
               year: "numeric",
@@ -72,80 +67,65 @@ const BlogPost = () => {
       </header>
 
       {/* Featured Image */}
-      {/* {post.imageUrl && (
-        <div className="w-full max-h-[480px] overflow-hidden rounded-lg shadow-sm">
+      {post.imageId && (
+        <div className="max-h-[480px] w-full overflow-hidden rounded-lg shadow-sm">
           <img
-            src={post.imageUrl}
+            src={post.imageId || ""}
             alt={post.title}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
-      )} */}
+      )}
 
       {/* Post Content */}
-      <Card className="prose dark:prose-invert max-w-none mx-auto px-8 py-10 leading-relaxed">
+      <Card className="prose dark:prose-invert mx-auto max-w-none px-8 py-10 leading-relaxed">
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </Card>
 
       {/* Comments Section */}
-      <section className="max-w-3xl mx-auto mt-12 space-y-8">
+      <section className="mx-auto mt-12 max-w-3xl space-y-8">
         <h2 className="text-2xl font-semibold tracking-tight">
           Comments ({post.comments.length})
         </h2>
+        {/* Add Comment Section */}
+        <section className="mx-auto mt-16 max-w-3xl">
+          <h3 className="mb-4 text-xl font-semibold tracking-tight">
+            Add a Comment
+          </h3>
+
+          <Card className="border-border space-y-4 border bg-none p-6 shadow-sm">
+            <Textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Share your thoughts..."
+              className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleAddComment}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              >
+                Post Comment
+              </button>
+            </div>
+          </Card>
+        </section>
 
         {comments.length > 0 ? (
           comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="flex items-start gap-4 p-5 bg-card border border-border rounded-xl shadow-sm hover:shadow transition-all duration-200"
-            >
-              {/* Avatar */}
-              <Avatar className="h-12 w-12 shrink-0">
-                <AvatarImage
-                  src={comment.author?.avatar || "/user.jpg"}
-                  alt={comment.author?.username || "Anonymous"}
-                />
-              </Avatar>
-
-              {/* Comment Body */}
-              <div className="flex flex-col space-y-1">
-                {/* Username & Date */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
-                  <p className="font-medium text-foreground">
-                    <Link to={comment.authorId}>
-                      {" "}
-                      {(comment && comment.author?.username) || "Anonymous"}
-                    </Link>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-
-                {/* Comment Content */}
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {comment.content}
-                </p>
-              </div>
-            </div>
+            <CommentCard key={comment.id} comment={comment} />
           ))
         ) : (
-          <p className="text-center text-muted-foreground">
+          <p className="text-muted-foreground text-center">
             No comments yet. Be the first to leave one!
           </p>
         )}
       </section>
       {/* Footer / Back link */}
-      <footer className="text-center pt-10">
+      <footer className="pt-10 text-center">
         <Link
           to="/blog"
-          className="text-primary hover:underline font-medium tracking-wide"
+          className="text-primary font-medium tracking-wide hover:underline"
         >
           ← Back to All Posts
         </Link>
