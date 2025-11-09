@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "../ui/card";
-import type { Comment } from "@/types/CommentTypes";
+import type { Comment as CommentType } from "@prisma/client";
 
-const CommentCard = ({ comment }: { comment: Comment }) => {
+const CommentCard = ({ comment }: { comment: CommentType }) => {
   const [expanded, setExpanded] = useState(false);
   const MAX_LENGTH = 120; // characters before truncation
 
@@ -18,11 +18,9 @@ const CommentCard = ({ comment }: { comment: Comment }) => {
         <Link
           to={`/post/${comment.postId}`}
           className="text-lg font-medium text-primary hover:underline"
-        >
-          {comment.postTitle}
-        </Link>
+        ></Link>
         <span className="text-xs text-muted-foreground mt-1 sm:mt-0">
-          {comment.date}
+          {new Date(comment.createdAt).toLocaleDateString("tr")}
         </span>
       </div>
 

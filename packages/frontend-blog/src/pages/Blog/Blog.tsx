@@ -66,7 +66,10 @@ const Blog = () => {
               >
                 <CardHeader>
                   <CardTitle>
-                    <Link to={post.id} className="hover:underline">
+                    <Link
+                      to={`/posts/id/${post.id}`}
+                      className="hover:underline"
+                    >
                       {post.title}
                     </Link>
                   </CardTitle>

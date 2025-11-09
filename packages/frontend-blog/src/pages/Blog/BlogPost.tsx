@@ -1,21 +1,40 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import type { Post as PostType } from "@prisma/client";
+import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+// import CommentCard from "@/components/custom/CommentCard";
 import postApi from "@/api/postApi";
 
-const Post = () => {
-  const { postSlug } = useParams();
-  const [post, setPost] = useState<PostType | null>(null);
+import type { PostWithRelations } from "@/types/EntityTypes";
+import type { Comment as CommentType } from "@prisma/client";
+
+type FrontendComment = CommentType & {
+  author?: { id: string; username: string; avatar: string | null };
+};
+
+const BlogPost = () => {
+  const { postId } = useParams();
+  const [post, setPost] = useState<PostWithRelations | null>(null);
+  const [comments, setComments] = useState<FrontendComment[]>([]);
 
   useEffect(() => {
-    if (postSlug) {
+    if (postId) {
       postApi
-        .getBySlug(postSlug)
-        .then((data: PostType) => setPost(data))
+        .getById(postId)
+        .then((post) => {
+          setPost(post);
+          console.log(post);
+        })
         .catch((err) => console.error("Failed to fetch the post: ", err));
     }
-  }, [postSlug]);
+  }, [postId]);
+
+  useEffect(() => {
+    if (post) {
+      setComments(post.comments ?? []);
+    }
+    console.log(comments);
+  }, [post, comments]);
 
   if (!post) {
     return (
@@ -63,15 +82,65 @@ const Post = () => {
         </div>
       )} */}
 
-      {/* Content Section */}
+      {/* Post Content */}
       <Card className="prose dark:prose-invert max-w-none mx-auto px-8 py-10 leading-relaxed">
-        {post.content.split("\n\n").map((para, i) => (
-          <p key={i} className="mb-6 last:mb-0">
-            {para}
-          </p>
-        ))}
+        <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </Card>
 
+      {/* Comments Section */}
+      <section className="max-w-3xl mx-auto mt-12 space-y-8">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Comments ({post.comments.length})
+        </h2>
+
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="flex items-start gap-4 p-5 bg-card border border-border rounded-xl shadow-sm hover:shadow transition-all duration-200"
+            >
+              {/* Avatar */}
+              <Avatar className="h-12 w-12 shrink-0">
+                <AvatarImage
+                  src={comment.author?.avatar || "/user.jpg"}
+                  alt={comment.author?.username || "Anonymous"}
+                />
+              </Avatar>
+
+              {/* Comment Body */}
+              <div className="flex flex-col space-y-1">
+                {/* Username & Date */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                  <p className="font-medium text-foreground">
+                    <Link to={comment.authorId}>
+                      {" "}
+                      {(comment && comment.author?.username) || "Anonymous"}
+                    </Link>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(comment.createdAt).toLocaleString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+
+                {/* Comment Content */}
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {comment.content}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground">
+            No comments yet. Be the first to leave one!
+          </p>
+        )}
+      </section>
       {/* Footer / Back link */}
       <footer className="text-center pt-10">
         <Link
@@ -85,4 +154,4 @@ const Post = () => {
   );
 };
 
-export default Post;
+export default BlogPost;

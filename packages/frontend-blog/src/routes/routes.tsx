@@ -5,7 +5,7 @@ import Home from "@/pages/Home";
 import Blog from "@/pages/Blog/Blog";
 import About from "@/pages/About/About";
 import Contact from "@/pages/Contact/Contact";
-import Post from "@/pages/Blog/BlogPost";
+import BlogPost from "@/pages/Blog/BlogPost";
 import NotFound from "@/pages/NotFound/NotFound";
 import Signup from "@/pages/Auth/Signup";
 import Login from "@/pages/Auth/Login";
@@ -18,7 +18,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "blog", element: <Blog /> },
-      { path: "blog/:postId", element: <Post /> },
+      { path: "posts/id/:postId", element: <BlogPost /> },
       { path: "about", element: <About /> },
       { path: "contact", element: <Contact /> },
       { path: "auth/signup", element: <Signup /> },
