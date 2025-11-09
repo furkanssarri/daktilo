@@ -22,21 +22,17 @@ router.get("/signup", (_req, res) => {
 
 router.post("/auth/refresh", refreshToken);
 router.post("/login", loginUser);
-router.get("/login", (_req: Request, res: Response<ResponseJsonObject>) => {
+// router.get("/login", (_req: Request, res: Response<ResponseJsonObject>) => {
+//   res.json({
+//     status: "success",
+//     message: "Welcome to the LOGIN page.",
+//   });
+// });
+router.post("/logout", requireAuth, (_req: Request, res: Response) => {
   res.json({
     status: "success",
-    message: "Welcome to the LOGIN page.",
+    message:
+      "Logout successful. Make sure to remove JWT token from LocalStorage.",
   });
 });
-router.post(
-  "/logout",
-  requireAuth,
-  (_req: Request, res: Response<ResponseJsonObject>) => {
-    res.json({
-      status: "success",
-      message:
-        "Logout successful. Make sure to remove JWT token from LocalStorage.",
-    });
-  },
-);
 export default router;

@@ -8,6 +8,7 @@ import {
 const router = Router();
 
 router.get("/me", userGetPublic); // and /api/users/me?include=comments
+
 router.put("/me", userPutPublic);
 router.put("/me/password", userPasswordPutPublic);
 

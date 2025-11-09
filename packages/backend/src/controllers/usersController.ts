@@ -1,78 +1,71 @@
 import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
-import type { User } from "@prisma/client";
+import type { User as UserType } from "@prisma/client";
 import prisma from "../db/prismaClient.js";
 import bcrypt from "bcryptjs";
+import sendResponse from "../utils/responseUtil.js";
+import { buildQueryOptions, buildUserQuery } from "../utils/includeBuilder.js";
 
 type UserUpdateInput = Partial<
-  Pick<User, "email" | "password" | "role" | "username" | "avatarId">
+  Pick<UserType, "email" | "password" | "role" | "username" | "avatarId">
 >;
 
-// GET api/users/me & GET /api/users/me?include=comments
+/**
+ * GET api/users/me & GET /api/users/me?include=comments
+ * Retrieves the authenticated user's profile with optional related data.
+ */
 export const userGetPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ user: UserType }>>,
 ) => {
-  const includeComments = req.query.include === "comments";
   if (!req.user)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(
+      res,
+      "error",
+      "Bad request: unauthorized",
+      undefined,
+      401,
+    );
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        avatarId: true,
-        createdAt: true,
-        ...(includeComments && {
-          comments: {
-            orderBy: { createdAt: "desc" },
-            select: {
-              id: true,
-              content: true,
-              createdAt: true,
-              updatedAt: true,
-              isApproved: true,
-            },
-          },
-        }),
-      },
-    });
-    if (!user)
-      return res
-        .status(404)
-        .json({ status: "error", message: "User Profile was not found." });
+    const { include } = buildUserQuery(req.query, false);
 
-    res.json({
-      status: "success",
-      message: "User found.",
-      data: { user },
+    const user = await prisma.user.findFirst({
+      where: { id: req.user.id },
+      include,
     });
+
+    if (!user)
+      return sendResponse(
+        res,
+        "error",
+        "User Profile was not found.",
+        undefined,
+        404,
+      );
+
+    return sendResponse(res, "success", "User found.", { user });
   } catch (err) {
     console.error("Error getting the user profile: ", err);
-    res.status(500).json({
-      status: "error",
-      message: "Internal Server Error.",
-    });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/users/me
+/**
+ * PUT api/users/me
+ * Updates the authenticated user's profile information.
+ */
+// TODO: REWORK THIS & PASSWORD RESET
 export const userPutPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ user: UserType }>>,
 ) => {
-  if (!req.user)
-    return res.status(400).json({ status: "error", message: "Bad Request." });
+  if (!req.user) return sendResponse(res, "error", "Bad Request.");
   const updates: UserUpdateInput = req.body;
 
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user)
-      return res
-        .status(404)
-        .json({ status: "error", message: "User not found." });
+      return sendResponse(res, "error", "User not found.", undefined, 404);
 
     const updatedData = { ...updates };
 
@@ -88,35 +81,30 @@ export const userPutPublic = async (
       data: updatedData,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "User updated successfully.",
-      data: { updatedUser },
+    return sendResponse(res, "success", "User updated successfully.", {
+      user: updatedUser,
     });
   } catch (err) {
     console.error("Error updating user: ", err);
-    res.status(500).json({
-      status: "error",
-      message: "Internal Server Error.",
-    });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/users/me/password
+/**
+ * PUT api/users/me/password
+ * Updates the authenticated user's password.
+ */
 export const userPasswordPutPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ user: UserType }>>,
 ) => {
   const newPasswordInput: string = req.body;
 
-  if (!req.user)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  if (!req.user) return sendResponse(res, "error", "Bad request.");
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user)
-      return res
-        .status(404)
-        .json({ status: "error", message: "User Not found." });
+      return sendResponse(res, "error", "User Not found.", undefined, 404);
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPasswordInput, salt);
@@ -129,67 +117,60 @@ export const userPasswordPutPublic = async (
       },
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "Password was changed successfully.",
-      data: {
-        updatedUser,
-      },
+    return sendResponse(res, "success", "Password was changed successfully.", {
+      user: updatedUser,
     });
   } catch (err) {
     console.error("Error resetting the user's password: ", err);
-    res.status(500).json({
-      status: "error",
-      message: "Internal Server Error.",
-    });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// GET api/admin/users
+/**
+ * GET api/admin/users
+ * Retrieves all users for admin.
+ */
 export const usersGetByAdmin = async (
   _req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ users: UserType[] }>>,
 ) => {
   try {
     const users = await prisma.user.findMany();
-    if (users.length < 1)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No users found." });
-    res.json({
-      status: "success",
-      message: `${users.length - 1} users found.`,
-      data: {
-        users,
-      },
+    if (Array.isArray(users) && !users.length)
+      return sendResponse(res, "error", "No users found.", undefined, 404);
+
+    return sendResponse(res, "success", `${users.length} users found.`, {
+      users,
     });
   } catch (err) {
     console.error("Error retrieving users: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-//PUT api/admin/users/:id
+/**
+ * PUT api/admin/users/:id
+ * Updates a user's information by admin.
+ */
 export const userPutByAdmin = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ user: UserType }>>,
 ) => {
   const { userId } = req.params;
   const updates: UserUpdateInput = req.body;
-  if (!userId)
-    return res.status(400).json({
-      status: "error",
-      message: "Please provide a user ID.",
-    });
+  if (!userId) return sendResponse(res, "error", "Please provide a user ID.");
+  if (req.user?.role !== "ADMIN")
+    return sendResponse(
+      res,
+      "error",
+      "Bad request: unauthorized.",
+      undefined,
+      401,
+    );
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user)
-      return res.status(404).json({
-        status: "error",
-        message: "User not found.",
-      });
+      return sendResponse(res, "error", "User not found.", undefined, 404);
 
     const updatedData = { ...updates };
     if (updates.password) {
@@ -204,16 +185,11 @@ export const userPutByAdmin = async (
       data: updatedData,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "User updated successfully.",
-      data: updatedUser,
+    return sendResponse(res, "success", "User updated successfully.", {
+      user: updatedUser,
     });
   } catch (err) {
     console.error("Error edit user controller: ", err);
-    res.status(500).json({
-      status: "error",
-      message: "Internal Server Error.",
-    });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };

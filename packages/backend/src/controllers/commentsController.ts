@@ -1,11 +1,19 @@
+// src/controllers/commentsController.ts
 import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
+import type { Comment as CommentType } from "@prisma/client";
+import sendResponse from "../utils/responseUtil.js";
 
-// GET api/comments
+/**
+ * GET /api/comments
+ *
+ * Retrieves all approved comments.
+ * Returns a list of comments with author and post details.
+ */
 export const getCommentsPublic = async (
   _req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ comments: CommentType[] }>>,
 ) => {
   try {
     const comments = await prisma.comment.findMany({
@@ -22,31 +30,30 @@ export const getCommentsPublic = async (
     });
 
     if (!comments.length)
-      return res
-        .status(404)
-        .json({ status: "error", message: "No comments found." });
+      return sendResponse(res, "error", "No comments found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Comments found.",
-      data: { comments },
+    return sendResponse(res, "success", "Comments retrieved successfully.", {
+      comments,
     });
   } catch (err) {
-    console.error("Error getting comments: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting comments:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// GET api/comments/:id
+/**
+ * GET /api/comments/:id
+ *
+ * Retrieves a single approved comment by ID.
+ */
 export const getCommentPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const { id } = req.params;
+
   if (!id)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing comment ID.");
 
   try {
     const comment = await prisma.comment.findUnique({
@@ -58,34 +65,38 @@ export const getCommentPublic = async (
     });
 
     if (!comment || !comment.isApproved)
-      return res.status(404).json({
-        status: "error",
-        message: "Comment not found or not approved.",
-      });
+      return sendResponse(
+        res,
+        "error",
+        "Comment not found or not approved.",
+        undefined,
+        404,
+      );
 
-    res.json({
-      status: "success",
-      message: "Comment found.",
-      data: { comment },
+    return sendResponse(res, "success", "Comment retrieved successfully.", {
+      comment,
     });
   } catch (err) {
-    console.error("Error getting comment: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error getting comment:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// POST api/comments
+/**
+ * POST /api/comments
+ *
+ * Creates a new comment by an authenticated user.
+ * The comment must be approved by an admin before becoming visible.
+ */
 export const createCommentPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const userId = req.user?.id;
   const { content, postId } = req.body;
 
   if (!userId || !content || !postId)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
     const newComment = await prisma.comment.create({
@@ -96,96 +107,91 @@ export const createCommentPublic = async (
       },
     });
 
-    res.json({
-      status: "success",
-      message: "Comment created successfully. Pending admin approval.",
-      data: { newComment },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Comment created successfully. Pending admin approval.",
+      { comment: newComment },
+    );
   } catch (err) {
-    console.error("Error creating comment: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error creating comment:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// PUT api/comments/:id
+/**
+ * PUT /api/comments/:id
+ *
+ * Updates a user's own comment and marks it as pending re-approval.
+ */
 export const updateCommentPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const userId = req.user?.id;
   const { id } = req.params;
   const { content } = req.body;
 
   if (!userId || !id || !content)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
     const existingComment = await prisma.comment.findUnique({ where: { id } });
+
     if (!existingComment)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Comment not found." });
+      return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
     if (existingComment.authorId !== userId)
-      return res
-        .status(403)
-        .json({ status: "error", message: "Unauthorized action." });
+      return sendResponse(res, "error", "Unauthorized action.", undefined, 403);
 
     const updatedComment = await prisma.comment.update({
       where: { id },
       data: { content, isApproved: false },
     });
 
-    res.json({
-      status: "success",
-      message: "Comment updated successfully. Pending admin re-approval.",
-      data: { updatedComment },
-    });
+    return sendResponse(
+      res,
+      "success",
+      "Comment updated successfully. Pending admin re-approval.",
+      { comment: updatedComment },
+    );
   } catch (err) {
-    console.error("Error updating comment: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error updating comment:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 
-// DELETE api/comments/:id
+/**
+ * DELETE /api/comments/:id
+ *
+ * Deletes a user's own comment.
+ */
 export const deleteCommentPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject>,
+  res: Response<ResponseJsonObject<{ comment: CommentType }>>,
 ) => {
   const userId = req.user?.id;
   const { id } = req.params;
 
   if (!userId || !id)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+    return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
     const existingComment = await prisma.comment.findUnique({ where: { id } });
 
     if (!existingComment)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Comment not found." });
+      return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
     if (existingComment.authorId !== userId)
-      return res
-        .status(403)
-        .json({ status: "error", message: "Unauthorized action." });
+      return sendResponse(res, "error", "Unauthorized action.", undefined, 403);
 
     const deletedComment = await prisma.comment.delete({ where: { id } });
 
-    res.json({
-      status: "success",
-      message: "Comment deleted successfully.",
-      data: { deletedComment },
+    return sendResponse(res, "success", "Comment deleted successfully.", {
+      comment: deletedComment,
     });
   } catch (err) {
-    console.error("Error deleting comment: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    console.error("Error deleting comment:", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };

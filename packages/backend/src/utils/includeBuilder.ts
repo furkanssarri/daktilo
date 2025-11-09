@@ -26,3 +26,22 @@ export const buildQueryOptions = (
 
   return { include, where };
 };
+
+export const buildUserQuery = (
+  query: any = {},
+  admin = false,
+): {
+  include: Prisma.UserInclude;
+} => {
+  const include: Prisma.UserInclude = {};
+
+  if (typeof query === "object" && query.include) {
+    const parts = query.include.split(",").map((s: string) => s.trim());
+    if (parts.includes("avatar")) include.avatar = true;
+    if (parts.includes("posts")) include.posts = true;
+    if (parts.includes("comments")) include.comments = true;
+    if (parts.includes("likes")) include.likes = true;
+  }
+
+  return { include };
+};
