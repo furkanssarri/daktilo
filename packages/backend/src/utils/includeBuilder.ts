@@ -10,19 +10,47 @@ export const buildQueryOptions = (
   const include: Prisma.PostInclude = {};
   const where: Prisma.PostWhereInput = {};
 
-  // Safely handle cases where query is missing or not an object
+  const includeSet = new Set<string>();
+
   if (typeof query === "object" && query.include) {
-    const parts = query.include.split(",").map((s: string) => s.trim());
-    if (parts.includes("author")) include.author = true;
-    if (parts.includes("comments")) include.comments = true;
-    if (parts.includes("category")) include.categories = true;
-    if (parts.includes("tags")) include.tags = true;
-    if (parts.includes("likes")) include.likes = true;
+    query.include
+      .split(",")
+      .map((s: string) => s.trim())
+      .forEach((part: string) => includeSet.add(part));
   }
 
-  if (!admin) {
-    where.isPublished = true;
+  // ✅ Author inclusion
+  if (includeSet.has("author")) {
+    include.author = {
+      select: { id: true, username: true, avatar: true },
+    };
   }
+
+  // ✅ Comments inclusion (now with nested author)
+  if (includeSet.has("comments")) {
+    include.comments = {
+      include: {
+        author: { select: { id: true, username: true, avatar: true } },
+      },
+    };
+  }
+
+  // ✅ Deep inclusion support for comments.author
+  if (includeSet.has("comments.author")) {
+    include.comments = {
+      include: {
+        author: { select: { id: true, username: true, avatar: true } },
+      },
+    };
+  }
+
+  // ✅ Other relations
+  if (includeSet.has("categories")) include.categories = true;
+  if (includeSet.has("tags")) include.tags = true;
+  if (includeSet.has("likes")) include.likes = true;
+
+  // ✅ Filter unpublished posts for public routes
+  if (!admin) where.isPublished = true;
 
   return { include, where };
 };

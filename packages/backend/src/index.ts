@@ -15,12 +15,15 @@ import postsRouter from "./routes/posts.js";
 import categoryRouter from "./routes/category.js";
 import tagsRouter from "./routes/tags.js";
 import commentsRouter from "./routes/comment.js";
+import path from "node:path";
 
 const app = express();
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use(express.static("public"));
 
 app.use(passport.initialize());
 

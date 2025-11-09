@@ -77,14 +77,7 @@ export const singlePostByIdPublic = async (
   res: Response<ResponseJsonObject<{ post: Post }>>,
 ) => {
   const { id } = req.params;
-  if (!id)
-    return sendResponse(
-      res,
-      "error",
-      "Bad request, ID is missing.",
-      undefined,
-      400,
-    );
+  if (!id) return sendResponse(res, "error", "Bad request, ID is missing.");
 
   try {
     const { include, where } = buildQueryOptions(req.query, false);
@@ -198,8 +191,6 @@ export const commentPostUser = async (
       res,
       "error",
       "Bad Request, post ID or user ID missing.",
-      undefined,
-      400,
     );
 
   try {
