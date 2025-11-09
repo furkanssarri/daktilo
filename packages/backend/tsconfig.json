@@ -14,7 +14,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": []
+    "isolatedModules": true,
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*", "src/types/express.d.ts"],
   "exclude": [
@@ -23,6 +24,9 @@
     "prisma.config.js.map",
     "prisma.config.d.ts.map",
     "dist",
-    "src/_archive"
+    "src/_archive",
+    "src/tests",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }
