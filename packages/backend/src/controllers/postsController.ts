@@ -104,72 +104,29 @@ export const singlePostByIdPublic = async (
  */
 export const likePostUser = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ post: Post }>>,
+  res: Response<ResponseJsonObject<{ liked: boolean; likeCount: number }>>,
 ) => {
   const userId = req.user?.id;
-  const { id } = req.params;
-  if (!id || !userId)
+  const { id: postId } = req.params;
+  if (!postId || !userId)
     return sendResponse(
       res,
       "error",
       "Bad Request, post ID or user ID missing.",
     );
   try {
-    const like = await prisma.like.create({
-      data: {
-        authorId: userId,
-        postId: id,
-      },
+    const existingLike = await prisma.like.findFirst({
+      where: { authorId: userId, postId: postId },
     });
 
-    if (!like)
-      return sendResponse(
-        res,
-        "error",
-        "Failed to like the post.",
-        undefined,
-        404,
-      );
-
-    const updatedPost = await prisma.post.findFirst({
-      where: { id: id },
-      include: {
-        author: {
-          select: { id: true, username: true, avatar: true },
-        },
-        comments: {
-          select: {
-            content: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-          include: {
-            author: {
-              select: { id: true, username: true, avatar: true },
-            },
-          },
-        },
-        _count: {
-          select: { likes: true, comments: true },
-        },
-      },
-    });
-
-    if (!updatedPost)
-      return sendResponse(
-        res,
-        "error",
-        "Failed to like the post, the post was not found.",
-        undefined,
-        404,
-      );
-
-    return sendResponse(
-      res,
-      "success",
-      "Like added to the post successfully.",
-      { post: updatedPost },
-    );
+    if (existingLike) {
+      await prisma.like.delete({ where: { id: existingLike.id } });
+      const likeCount = await prisma.like.count({ where: { postId } });
+      return sendResponse(res, "success", "Post liked successfully.", {
+        liked: true,
+        likeCount,
+      });
+    }
   } catch (err) {
     console.error("Error performing like to post: ", err);
     return sendResponse(res, "error", "Internal Server Error", undefined, 500);

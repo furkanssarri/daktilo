@@ -9,9 +9,11 @@ import NotFoundElement from "@/components/custom/NotFoundElement";
 import commentApi from "@/api/commentApi";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/AuthContext";
 
 const BlogPost = () => {
   const { postId } = useParams();
+  const { user } = useAuth();
 
   const [post, setPost] = useState<PostWithRelations | null>(null);
   const [comments, setComments] = useState<FrontendComment[]>([]);
@@ -20,6 +22,7 @@ const BlogPost = () => {
     null,
   );
   const [editedContent, setEditedContent] = useState("");
+  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     if (postId) {
@@ -27,11 +30,16 @@ const BlogPost = () => {
         .getBySlug(postId)
         .then((post) => {
           setPost(post);
+          console.log(post);
           setComments(post.comments ?? []);
+          if (user) {
+            const liked = post.likes?.some((like) => like.authorId === user.id);
+            setIsLiked(liked);
+          }
         })
         .catch((err) => console.error("Failed to fetch the post: ", err));
     }
-  }, [postId]);
+  }, [postId, user]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !post) return;
@@ -81,6 +89,23 @@ const BlogPost = () => {
     }
   };
 
+  const handleToggleLike = async () => {
+    console.log("test");
+    if (!post) return;
+    try {
+      const response = await postApi.likePost(post.id);
+      // optionally update local post.like count
+      setPost((prev) =>
+        prev
+          ? { ...prev, _count: { ...prev._count, likes: response.likeCount } }
+          : prev,
+      );
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
+      toast.error("Something went wrong while toggling like.");
+    }
+  };
+
   if (!post) {
     return <NotFoundElement />;
   }
@@ -122,6 +147,25 @@ const BlogPost = () => {
       <Card className="prose dark:prose-invert mx-auto max-w-none px-8 py-10 leading-relaxed">
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </Card>
+
+      <div className="flex items-center justify-center gap-3">
+        <button
+          onClick={handleToggleLike}
+          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            isLiked
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+          }`}
+        >
+          {isLiked ? "♥ Liked" : "♡ Like"}
+        </button>
+
+        {post?._count?.likes !== undefined && (
+          <span className="text-muted-foreground text-sm">
+            {post._count.likes} {post._count.likes === 1 ? "like" : "likes"}
+          </span>
+        )}
+      </div>
 
       {/* Add Comment Section */}
       <section className="mx-auto mt-16 max-w-3xl">

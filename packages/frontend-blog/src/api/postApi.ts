@@ -1,6 +1,5 @@
 import type { PostWithRelations } from "@/types/EntityTypes";
 import { apiRequest } from "./apiClient";
-import type { Post as PostType, Comment } from "@prisma/client";
 import buildIncludeQuery from "@/utils/buildIncludeQuery";
 
 const postApi = {
@@ -17,12 +16,12 @@ const postApi = {
       tags: true,
       likes: true,
     },
-  ) => {
+  ): Promise<PostWithRelations[]> => {
     const query = buildIncludeQuery(options);
     const response = await apiRequest<{
       status: string;
       message: string;
-      data: { posts: PostType[] };
+      data: { posts: PostWithRelations[] };
     }>(`/posts${query}`);
     return response.data.posts;
   },
@@ -98,10 +97,18 @@ const postApi = {
   },
 
   /**
-   * Like a post.
+   * Like or unlike (toggle) a post.
    */
-  likePost: (id: string) =>
-    apiRequest<void>(`/posts/${id}/like`, { method: "POST" }),
+  likePost: async (
+    id: string,
+  ): Promise<{ liked: boolean; likeCount: number }> => {
+    const response = await apiRequest<{
+      status: string;
+      message: string;
+      data: { liked: boolean; likeCount: number };
+    }>(`/posts/${id}/like`, { method: "POST" });
+    return response.data;
+  },
 
   /**
    * Comment on a post.
