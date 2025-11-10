@@ -18,7 +18,6 @@ export async function apiRequest<T>(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
-
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,

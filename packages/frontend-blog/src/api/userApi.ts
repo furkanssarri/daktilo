@@ -1,5 +1,5 @@
 import { apiRequest } from "./apiClient";
-import buildIncludeQuery from "@/utils/queryBuilder.js";
+import buildIncludeQuery from "@/utils/buildIncludeQuery.js";
 import type { User, Comment } from "@prisma/client";
 import type { UserWithRelations } from "@/types/EntityTypes";
 

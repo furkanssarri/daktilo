@@ -1,16 +1,7 @@
 import type { PostWithRelations } from "@/types/EntityTypes";
 import { apiRequest } from "./apiClient";
 import type { Post as PostType, Comment } from "@prisma/client";
-
-/**
- * Helper to build query string for includes
- * Converts { author: true, comments: true } → ?include=author,comments
- */
-function buildIncludeQuery(options?: Partial<Record<string, boolean>>): string {
-  if (!options) return "";
-  const includeKeys = Object.keys(options).filter((key) => options[key]);
-  return includeKeys.length ? `?include=${includeKeys.join(",")}` : "";
-}
+import buildIncludeQuery from "@/utils/buildIncludeQuery";
 
 const postApi = {
   /**
