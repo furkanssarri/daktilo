@@ -19,7 +19,6 @@ const Blog = () => {
     postApi
       .getAll()
       .then((data: PostType[]) => {
-        console.log("Fetched posts:", data);
         setAllPosts(data);
       })
       .catch((err) => console.error("Error fetching posts: ", err));
@@ -43,11 +42,11 @@ const Blog = () => {
   }, [allPosts]);
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-16 space-y-16">
+    <main className="mx-auto max-w-5xl space-y-16 px-6 py-16">
       {/* Hero  Section */}
-      <section className="text-center space-y-4">
+      <section className="space-y-4 text-center">
         <h1 className="text-5xl font-bold">Blog</h1>
-        <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-3xl text-lg">
           Explore my latest projects, tutorials, and insights on web
           development.
         </p>
@@ -56,13 +55,13 @@ const Blog = () => {
       <Separator />
 
       {/* Recent Posts (Optional)  */}
-      <section className="grid md:grid-cols-2 gap-8">
+      <section className="grid gap-8 md:grid-cols-2">
         {Array.isArray(recentPosts) &&
           recentPosts.map((post: PostType) =>
             post ? (
               <Card
                 key={post.id}
-                className="group hover:shadow-lg transition-shadow cursor-pointer"
+                className="group cursor-pointer transition-shadow hover:shadow-lg"
               >
                 <CardHeader>
                   <CardTitle>
@@ -73,7 +72,7 @@ const Blog = () => {
                       {post.title}
                     </Link>
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {/* {post.createdAt.toLocaleDateString()} */}
                     {/* • post.readTime ? ({post.readTime} min read) */}
                   </p>
@@ -95,25 +94,25 @@ const Blog = () => {
             post ? (
               <Card
                 key={post.id}
-                className="flex flex-row w-full overflow-hidden hover:shadow-md transition-shadow duration-200"
+                className="flex w-full flex-row overflow-hidden transition-shadow duration-200 hover:shadow-md"
               >
                 <Link
                   to={`/blog/${post.slug ?? post.id}`}
-                  className="flex flex-row w-full hover:no-underline text-inherit"
+                  className="flex w-full flex-row text-inherit hover:no-underline"
                 >
                   {/* LEFT SIDE — TEXT CONTENT */}
-                  <div className="flex flex-col justify-between flex-1 p-6">
+                  <div className="flex flex-1 flex-col justify-between p-6">
                     <div>
-                      <CardTitle className="text-2xl font-semibold text-primary hover:underline mb-3">
+                      <CardTitle className="text-primary mb-3 text-2xl font-semibold hover:underline">
                         {post.title}
                       </CardTitle>
 
-                      <p className="text-muted-foreground line-clamp-3 mb-4 hover:text-foreground transition-colors duration-200">
+                      <p className="text-muted-foreground hover:text-foreground mb-4 line-clamp-3 transition-colors duration-200">
                         {post.excerpt}
                       </p>
                     </div>
 
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {new Date(post.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
@@ -143,18 +142,18 @@ const Blog = () => {
       <section className="flex flex-col space-y-4">
         <h2 className="text-2xl font-semibold">Categories</h2>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.isArray(categories) &&
             categories.map((cat: CategoryType) => (
               <Link
                 key={cat.id}
                 to={`/category/${cat.id}`}
-                className="group block border rounded-lg p-5 hover:bg-muted transition-colors duration-200"
+                className="group hover:bg-muted block rounded-lg border p-5 transition-colors duration-200"
               >
-                <h3 className="text-lg font-semibold text-primary group-hover:underline mb-1">
+                <h3 className="text-primary mb-1 text-lg font-semibold group-hover:underline">
                   {cat.name}
                 </h3>
-                <p className="text-sm text-muted-foreground line-clamp-3">
+                <p className="text-muted-foreground line-clamp-3 text-sm">
                   {cat.description}
                 </p>
               </Link>

@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { SocialButtons } from "@/components/custom/SocialButtons";
-import { useScrollFadeIn } from "../../hooks/useScrollFateIn.ts";
+import { useScrollFadeIn } from "../../hooks/useScrollFadeIn.ts";
 
 const About = () => {
   const background = useScrollFadeIn();
@@ -10,21 +10,21 @@ const About = () => {
   const contact = useScrollFadeIn();
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-16 space-y-24 border rounded-sm mt-5">
+    <div className="mx-auto mt-5 max-w-4xl space-y-24 rounded-sm border px-6 py-16">
       {/* Hero / Intro Section */}
-      <section className="text-center flex flex-col items-center space-y-6">
-        <div className="relative group">
+      <section className="flex flex-col items-center space-y-6 text-center">
+        <div className="group relative">
           <img
             src="/src/assets/me.jpg"
             alt="Furkan portrait"
-            className="w-40 h-40 rounded-full object-cover border-4 border-muted fade-in"
+            className="border-muted fade-in h-40 w-40 rounded-full border-4 object-cover"
           />
-          <div className="absolute inset-0 rounded-full ring-2 ring-transparent group-hover:ring-primary/40 transition-all duration-300" />
+          <div className="group-hover:ring-primary/40 absolute inset-0 rounded-full ring-2 ring-transparent transition-all duration-300" />
         </div>
 
         <div className="space-y-3">
-          <h1 className="text-4xl sm:text-5xl font-bold">About Me</h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold sm:text-5xl">About Me</h1>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
             I’m Furkan — an aspiring full-stack web developer who loves turning
             ideas into interactive experiences. This page is a little glimpse
             into who I am, what I do, and what I’m learning along the way.
@@ -33,29 +33,29 @@ const About = () => {
       </section>
 
       {/* Quick Facts Section */}
-      <section className="flex flex-wrap justify-center gap-6 mt-10">
-        <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-4 py-2 shadow-sm hover:shadow transition hover-float fade-in delay-1">
+      <section className="mt-10 flex flex-wrap justify-center gap-6">
+        <div className="bg-muted/50 hover-float fade-in flex items-center space-x-2 rounded-md px-4 py-2 shadow-sm transition delay-1 hover:shadow">
           <span className="text-xl">🌍</span>
           <p className="text-muted-foreground text-sm font-medium">
             Based in Istanbul
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-4 py-2 shadow-sm hover:shadow transition hover-float fade-in delay-2">
+        <div className="bg-muted/50 hover-float fade-in flex items-center space-x-2 rounded-md px-4 py-2 shadow-sm transition delay-2 hover:shadow">
           <span className="text-xl">⚛️</span>
           <p className="text-muted-foreground text-sm font-medium">
             Learning React & TypeScript
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-4 py-2 shadow-sm hover:shadow transition hover-float fade-in delay-3">
+        <div className="bg-muted/50 hover-float fade-in flex items-center space-x-2 rounded-md px-4 py-2 shadow-sm transition delay-3 hover:shadow">
           <span className="text-xl">☕</span>
           <p className="text-muted-foreground text-sm font-medium">
             Fueled by coffee
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-4 py-2 shadow-sm hover:shadow transition hover-float fade-in delay-4">
+        <div className="bg-muted/50 hover-float fade-in flex items-center space-x-2 rounded-md px-4 py-2 shadow-sm transition delay-4 hover:shadow">
           <span className="text-xl">🎮</span>
           <p className="text-muted-foreground text-sm font-medium">
             Gamer & puzzle enthusiast
@@ -68,7 +68,7 @@ const About = () => {
       {/* Background Section */}
       <section
         ref={background.ref}
-        className={`space-y-6 scroll-fade ${background.isVisible ? "visible" : ""}`}
+        className={`scroll-fade space-y-6 ${background.isVisible ? "visible" : ""}`}
       >
         <h2 className="text-2xl font-semibold">My Journey</h2>
         <p className="text-muted-foreground leading-relaxed">
@@ -90,7 +90,7 @@ const About = () => {
       {/* Skills Section */}
       <section
         ref={skills.ref}
-        className={`space-y-6 scroll-fade ${skills.isVisible ? "visible" : ""}`}
+        className={`scroll-fade space-y-6 ${skills.isVisible ? "visible" : ""}`}
       >
         <h2 className="text-2xl font-semibold">Tech Stack</h2>
         <p className="text-muted-foreground">
@@ -113,7 +113,7 @@ const About = () => {
       {/* Personal Interests Section */}
       <section
         ref={interests.ref}
-        className={`space-y-6 scroll-fade ${interests.isVisible ? "visible" : ""}`}
+        className={`scroll-fade space-y-6 ${interests.isVisible ? "visible" : ""}`}
       >
         <h2 className="text-2xl font-semibold">Outside of Code</h2>
         <p className="text-muted-foreground leading-relaxed">
@@ -129,7 +129,7 @@ const About = () => {
       {/* Contact / CTA Section */}
       <section
         ref={contact.ref}
-        className={`text-center space-y-4 scroll-fade ${contact.isVisible ? "visible" : ""}`}
+        className={`scroll-fade space-y-4 text-center ${contact.isVisible ? "visible" : ""}`}
       >
         <h2 className="text-2xl font-semibold">Let’s Connect</h2>
         <p className="text-muted-foreground">
