@@ -114,6 +114,7 @@ export const likePostUser = async (
       "error",
       "Bad Request, post ID or user ID missing.",
     );
+  console.log("user id: ", userId, "post id: ", postId);
   try {
     const existingLike = await prisma.like.findFirst({
       where: { authorId: userId, postId: postId },
@@ -121,6 +122,15 @@ export const likePostUser = async (
 
     if (existingLike) {
       await prisma.like.delete({ where: { id: existingLike.id } });
+      const likeCount = await prisma.like.count({ where: { postId } });
+      return sendResponse(res, "success", "Post unliked successfully.", {
+        liked: false,
+        likeCount,
+      });
+    } else {
+      await prisma.like.create({
+        data: { authorId: userId, postId: postId },
+      });
       const likeCount = await prisma.like.count({ where: { postId } });
       return sendResponse(res, "success", "Post liked successfully.", {
         liked: true,

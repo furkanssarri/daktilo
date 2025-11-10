@@ -90,7 +90,6 @@ const BlogPost = () => {
   };
 
   const handleToggleLike = async () => {
-    console.log("test");
     if (!post) return;
     try {
       const response = await postApi.likePost(post.id);
