@@ -32,9 +32,12 @@ import {
   DialogDescription,
   DialogClose,
 } from "@radix-ui/react-dialog";
+import { useAuth } from "@/context/AuthContext";
 
 const BlogPost = () => {
   const { postId } = useParams();
+  const { user } = useAuth();
+
   const [post, setPost] = useState<PostWithRelations | null>(null);
   const [comments, setComments] = useState<FrontendComment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -178,78 +181,82 @@ const BlogPost = () => {
           comments.map((comment) => (
             <div key={comment.id} className="space-y-3">
               <CommentCard comment={comment} />
-              <div className="flex justify-end gap-2">
-                <Dialog
-                  open={editingComment?.id === comment.id}
-                  onOpenChange={(open) => {
-                    if (!open) {
-                      setEditingComment(null);
-                      setEditedContent("");
-                    }
-                  }}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingComment(comment);
-                        setEditedContent(comment.content);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </DialogTrigger>
-
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Comment</DialogTitle>
-                      <DialogDescription>
-                        Update your comment below.
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <Textarea
-                      value={editedContent}
-                      onChange={(e) => setEditedContent(e.target.value)}
-                      className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2"
-                    />
-
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="secondary">Cancel</Button>
-                      </DialogClose>
-                      <Button onClick={handleEditComment}>Save Changes</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this comment? This
-                        action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteComment(comment.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              {user?.id === comment.authorId && (
+                <div className="flex justify-end gap-2">
+                  <Dialog
+                    open={editingComment?.id === comment.id}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        setEditingComment(null);
+                        setEditedContent("");
+                      }
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingComment(comment);
+                          setEditedContent(comment.content);
+                        }}
                       >
+                        Edit
+                      </Button>
+                    </DialogTrigger>
+
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Comment</DialogTitle>
+                        <DialogDescription>
+                          Update your comment below.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <Textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                        className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2"
+                      />
+
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="secondary">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={handleEditComment}>
+                          Save Changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
                         Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this comment? This
+                          action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </div>
           ))
         ) : (

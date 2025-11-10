@@ -131,7 +131,7 @@ export const updateCommentPublic = async (
   const { id } = req.params;
   const { content } = req.body;
 
-  if (!userId || !id || !content)
+  if (!req.user || !id || !content)
     return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
@@ -140,7 +140,7 @@ export const updateCommentPublic = async (
     if (!existingComment)
       return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
-    if (existingComment.authorId !== userId)
+    if (existingComment.authorId !== userId && req.user.role !== "ADMIN")
       return sendResponse(res, "error", "Unauthorized action.", undefined, 403);
 
     const updatedComment = await prisma.comment.update({
@@ -172,7 +172,7 @@ export const deleteCommentPublic = async (
   const userId = req.user?.id;
   const { id } = req.params;
 
-  if (!userId || !id)
+  if (!req.user || !id)
     return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
@@ -183,7 +183,7 @@ export const deleteCommentPublic = async (
     if (!existingComment)
       return sendResponse(res, "error", "Comment not found.", undefined, 404);
 
-    if (existingComment.authorId !== userId)
+    if (existingComment.authorId !== userId && req.user?.role !== "ADMIN")
       return sendResponse(res, "error", "Unauthorized action.", undefined, 403);
 
     const deletedComment = await prisma.comment.delete({ where: { id: id } });
