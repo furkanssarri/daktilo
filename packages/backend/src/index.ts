@@ -29,7 +29,7 @@ app.use(passport.initialize());
 
 app.use("/api/auth", authRouter);
 
-app.use("api/comments", requireAuth, commentsRouter);
+app.use("/api/comments", requireAuth, commentsRouter);
 app.use("/api/tags", tagsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/posts", postsRouter);

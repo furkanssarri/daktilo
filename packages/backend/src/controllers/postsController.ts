@@ -177,7 +177,7 @@ export const likePostUser = async (
 };
 /**
  * POST api/posts/:id/comment
- * Creates a Comment record for the post by `id` with `userId`
+ * Creates a Comment record for the post by `id` with `userId` and `content`.
  * Returns the `updatedPost` post.
  */
 export const commentPostUser = async (
@@ -185,8 +185,9 @@ export const commentPostUser = async (
   res: Response<ResponseJsonObject<{ post: Post }>>,
 ) => {
   const userId = req.user?.id;
-  const { id } = req.params;
-  if (!id || !userId)
+  const { postId } = req.params;
+  const { content } = req.body;
+  if (!postId || !userId)
     return sendResponse(
       res,
       "error",
@@ -196,8 +197,8 @@ export const commentPostUser = async (
   try {
     const comment = await prisma.comment.create({
       data: {
-        content: "test",
-        postId: id,
+        content: content,
+        postId: postId,
         authorId: userId,
       },
     });
@@ -212,7 +213,7 @@ export const commentPostUser = async (
       );
 
     const updatedPost = await prisma.post.findFirst({
-      where: { id: id },
+      where: { id: postId },
       include: {
         author: {
           select: { id: true, username: true, avatar: true },

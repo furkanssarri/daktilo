@@ -1,4 +1,3 @@
-// src/controllers/commentsController.ts
 import type { Request, Response } from "express";
 import { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
@@ -177,7 +176,9 @@ export const deleteCommentPublic = async (
     return sendResponse(res, "error", "Bad request: missing fields.");
 
   try {
-    const existingComment = await prisma.comment.findUnique({ where: { id } });
+    const existingComment = await prisma.comment.findUnique({
+      where: { id: id },
+    });
 
     if (!existingComment)
       return sendResponse(res, "error", "Comment not found.", undefined, 404);
@@ -185,7 +186,7 @@ export const deleteCommentPublic = async (
     if (existingComment.authorId !== userId)
       return sendResponse(res, "error", "Unauthorized action.", undefined, 403);
 
-    const deletedComment = await prisma.comment.delete({ where: { id } });
+    const deletedComment = await prisma.comment.delete({ where: { id: id } });
 
     return sendResponse(res, "success", "Comment deleted successfully.", {
       comment: deletedComment,
