@@ -5,7 +5,7 @@ import generateToken from "../utils/generateToken.js";
 import { ResponseJsonObject } from "../types/response.js";
 import jwt from "jsonwebtoken";
 import sendResponse from "../utils/responseUtil.js";
-import type { User as UserType } from "@prisma/client";
+import { UserRole, type User as UserType } from "@prisma/client";
 
 /**
  * Register a new user
@@ -97,7 +97,12 @@ export const loginUser = async (
       return sendResponse(res, "error", "Invalid credentials.", undefined, 401);
     }
 
-    const { accessToken, refreshToken } = generateToken(user.id, user.email);
+    const { accessToken, refreshToken } = generateToken(
+      user.id,
+      user.email,
+      user.role,
+      user.username,
+    );
 
     return sendResponse(
       res,
@@ -163,7 +168,20 @@ export const refreshToken = async (
       );
     }
 
-    const newTokens = generateToken(decoded.id, decoded.email);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, email: true, role: true, username: true },
+    });
+
+    if (!user)
+      return sendResponse(res, "error", "User not found.", undefined, 404);
+
+    const newTokens = generateToken(
+      decoded.id,
+      decoded.email,
+      user.role,
+      user.username,
+    );
 
     return sendResponse(
       res,

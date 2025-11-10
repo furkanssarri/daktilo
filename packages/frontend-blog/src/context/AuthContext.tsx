@@ -11,7 +11,8 @@ import { setLogoutCallback } from "@/api/apiClient";
 interface DecodedToken {
   id: string;
   email: string;
-  username?: string;
+  username?: string | null;
+  role: "ADMIN" | "USER";
   exp: number;
 }
 

@@ -30,7 +30,6 @@ const BlogPost = () => {
         .getBySlug(postId)
         .then((post) => {
           setPost(post);
-          console.log(post);
           setComments(post.comments ?? []);
           if (user) {
             const liked = post.likes?.some((like) => like.authorId === user.id);

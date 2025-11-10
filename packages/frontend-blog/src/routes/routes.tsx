@@ -10,6 +10,7 @@ import NotFound from "@/pages/NotFound/NotFound";
 import Signup from "@/pages/Auth/Signup";
 import Login from "@/pages/Auth/Login";
 import Profile from "@/pages/User/Profile";
+import AdminDashboard from "@/pages/Admin/AdminDashboard";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       { path: "auth/signup", element: <Signup /> },
       { path: "auth/login", element: <Login /> },
       { path: "api/users/me", element: <Profile /> },
+      { path: "api/admin/me", element: <AdminDashboard /> },
       { path: "*", element: <NotFound /> },
     ],
   },
