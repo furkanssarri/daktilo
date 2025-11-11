@@ -1,14 +1,76 @@
-// src/pages/Admin/AdminDashboard.tsx
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useScrollFadeIn } from "@/hooks/useScrollFadeIn";
 
+import adminPostsApi from "@/api/adminApi/adminPostApi";
+import adminCommentsApi from "@/api/adminApi/adminCommentsApi";
+import { useEffect, useMemo, useState } from "react";
+import type { Post as PostType, Comment as CommentType } from "@prisma/client";
+import type { UserWithRelations } from "@/types/EntityTypes";
+import adminUserApi from "@/api/adminApi/AdminUserApi";
+
 const AdminDashboard = () => {
   const overview = useScrollFadeIn();
   const posts = useScrollFadeIn();
   const users = useScrollFadeIn();
+
+  // ---------- ALL POSTS LOGIC --------------------------
+  const [allPosts, setAllPosts] = useState<PostType[] | []>([]);
+
+  useEffect(() => {
+    adminPostsApi
+      .getAll()
+      .then((data: PostType[]) => setAllPosts(data))
+      .catch((err) => console.error("Failed fetching posts: ", err));
+  }, []);
+
+  const getStartofWeek = (date: Date) => {
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+  };
+
+  const postsThisWeek = useMemo(() => {
+    const startofWeek = getStartofWeek(new Date());
+    return allPosts.filter((post) => new Date(post.createdAt) >= startofWeek);
+  }, [allPosts]);
+
+  const newPostsCount = postsThisWeek.length;
+
+  // ---------- ALL COMMENTS LOGIC -------------------
+
+  const [allComments, setAllComments] = useState<CommentType[] | []>([]);
+
+  useEffect(() => {
+    adminCommentsApi
+      .getAll()
+      .then((data: CommentType[]) => setAllComments(data))
+      .catch((err) => console.error("Failed fetching comments: ", err));
+  }, []);
+
+  const unApproved = useMemo(() => {
+    return allComments.filter((comment) => comment.isApproved === false);
+  }, [allComments]);
+
+  // ---------------ALL USERS LOGIC ------------------
+
+  const [allUsers, setAllUsers] = useState<UserWithRelations[] | []>([]);
+
+  const usersThisWeek = useMemo(() => {
+    const startofWeek = getStartofWeek(new Date());
+    return allUsers.filter((user) => new Date(user.createdAt) >= startofWeek);
+  }, [allUsers]);
+
+  const newUsersCount = usersThisWeek.length;
+
+  useEffect(() => {
+    adminUserApi
+      .getAllUsers()
+      .then((data: UserWithRelations[]) => setAllUsers(data))
+      .catch((err) => console.error("Failed to fetch all users: ", err));
+  }, []);
 
   return (
     <div className="mx-auto mt-5 max-w-5xl space-y-24 rounded-sm border px-6 py-16">
@@ -37,9 +99,9 @@ const AdminDashboard = () => {
               <CardTitle>Total Posts</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold">12</p>
+              <p className="text-4xl font-bold">{allPosts.length}</p>
               <Badge variant="secondary" className="mt-2">
-                +3 new this week
+                +{newPostsCount} new this week
               </Badge>
             </CardContent>
           </Card>
@@ -49,9 +111,9 @@ const AdminDashboard = () => {
               <CardTitle>Comments</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold">87</p>
+              <p className="text-4xl font-bold">{allComments.length}</p>
               <Badge variant="secondary" className="mt-2">
-                5 awaiting approval
+                {unApproved.length} awaiting approval
               </Badge>
             </CardContent>
           </Card>
@@ -61,9 +123,11 @@ const AdminDashboard = () => {
               <CardTitle>Registered Users</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold">34</p>
+              <p className="text-4xl font-bold">
+                {allUsers && allUsers.length}
+              </p>
               <Badge variant="secondary" className="mt-2">
-                2 new this week
+                +{newUsersCount} new this week
               </Badge>
             </CardContent>
           </Card>
