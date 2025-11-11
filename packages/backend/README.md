@@ -83,6 +83,7 @@ PUT     /api/admin/tags/:id                  // Update a tag
 DELETE  /api/admin/tags/:id                  // Delete a tag by ID
 
 // COMMENTS (ADMIN)
+GET     /api/admin/comments                  // Get all comments
 PUT     /api/admin/comments/:id              // Edit any comment
 DELETE  /api/admin/comments/:id              // Delete any comment
 PUT     /api/admin/comments/:id/approval     // Approve or disapprove a comment

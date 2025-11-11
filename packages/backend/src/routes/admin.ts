@@ -12,6 +12,7 @@ import {
   createTagAdmin,
   updateTagAdmin,
   deleteTagAdmin,
+  getAllCommentsAdmin,
   updateCommentAdmin,
   deleteCommentAdmin,
   approveDisapproveCommentsAdmin,
@@ -49,6 +50,8 @@ router.put("/posts/:id/publish", publishUnpublishPostAdmin);
 // ===============================
 //  Comment management
 // ===============================
+// Get all comments (admin)
+router.get("/comments", getAllCommentsAdmin);
 
 // Update a comment (admin)
 router.put("/comments/:id", updateCommentAdmin);

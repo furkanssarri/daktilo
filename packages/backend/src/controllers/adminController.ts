@@ -151,7 +151,7 @@ export const getAllPostsAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
-  if (req.user?.role !== "ADMIN")
+  if (!req.user || req.user.role !== "ADMIN")
     return sendResponse(
       res,
       "error",
@@ -169,11 +169,14 @@ export const getAllPostsAdmin = async (
     });
 
     if (!Array.isArray(posts) || !posts.length)
-      sendResponse(res, "success", "Posts retrieved successfully.", { posts });
+      return sendResponse(res, "error", "No posts found.", undefined, 404);
+
+    return sendResponse(res, "success", "Posts retrieved successfully.", {
+      posts,
+    });
   } catch (err) {
     console.error("Error getting all posts as an admin: ", err);
-    return res.status(500);
-    sendResponse(res, "error", "Failed to fetch posts,", undefined, 500);
+    return sendResponse(res, "error", "Failed to fetch posts,", undefined, 500);
   }
 };
 
@@ -502,6 +505,52 @@ export const deleteTagAdmin = async (
     console.error("Error deleting tag: ", err);
     if (err.code === "P2025")
       return sendResponse(res, "error", "Tag not found.", undefined, 404);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
+  }
+};
+
+/**
+ * GET /api/admin/comments
+ *
+ * Retrieves all comments, approved and unapproved.
+ * Admin-only access.
+ */
+export const getAllCommentsAdmin = async (
+  _req: Request,
+  res: Response<ResponseJsonObject<{ comments: CommentType[] }>>,
+) => {
+  if (_req.user?.role !== "ADMIN")
+    return sendResponse(
+      res,
+      "error",
+      "Unauthorized: Admin access required.",
+      undefined,
+      401,
+    );
+
+  try {
+    const comments = await prisma.comment.findMany({
+      include: {
+        author: { select: { id: true, username: true, avatar: true } },
+        post: { select: { id: true, title: true, slug: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!comments)
+      return sendResponse(
+        res,
+        "error",
+        "No comments to fetch.",
+        undefined,
+        404,
+      );
+
+    return sendResponse(res, "success", "Comments retrieved successfully.", {
+      comments,
+    });
+  } catch (err) {
+    console.error("Error getting admin comments:", err);
     return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
