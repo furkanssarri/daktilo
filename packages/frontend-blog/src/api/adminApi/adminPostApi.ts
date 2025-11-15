@@ -45,7 +45,30 @@ const adminPostsApi = {
       status: string;
       message: string;
       data: { post: PostWithRelations };
-    }>(`/admin/posts/${id}${query}`);
+    }>(`/admin/posts/id/${id}${query}`);
+
+    if (!response.data?.post) {
+      throw new Error("PostWithRelations not found");
+    }
+
+    return response.data.post;
+  },
+  getBySlug: async (
+    slug: string,
+    options: Partial<Record<string, boolean>> = {
+      author: true,
+      comments: true,
+      categories: true,
+      tags: true,
+    },
+  ): Promise<PostWithRelations> => {
+    const query = buildIncludeQuery(options);
+
+    const response = await apiRequest<{
+      status: string;
+      message: string;
+      data: { post: PostWithRelations };
+    }>(`/admin/posts/slug/${slug}${query}`);
 
     if (!response.data?.post) {
       throw new Error("PostWithRelations not found");

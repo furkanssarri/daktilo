@@ -181,6 +181,40 @@ export const getAllPostsAdmin = async (
 };
 
 /**
+ * GET api/admin/posts/id/:id||
+ * GET /api/admin/posts/id/:id?include=author, comments ||
+ * GET /api/admin/posts/id/:id?include=author,tags,category
+ *
+ * Fetches all posts for admin by ID. Unlike its sibling,
+ * does not filter the post by * `post.isPublished`.
+ * Returns all posts.
+ */
+export const postByIdAdmin = async (
+  req: Request,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
+) => {
+  const { id } = req.params;
+  if (!id)
+    return sendResponse(res, "error", "Bad request: missing paramteters.");
+  try {
+    const { include, where } = buildQueryOptions(req.query, true);
+
+    const post = await prisma.post.findFirst({
+      where,
+      include,
+    });
+
+    if (!post)
+      return sendResponse(res, "error", "Post not found.", undefined, 404);
+
+    return sendResponse(res, "error", "Post retrieved successfully.", { post });
+  } catch (err) {
+    console.error("Error getting post by id: ", err);
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
+  }
+};
+
+/**
  * GET api/admin/posts/slug/:slug ||
  * GET /api/admin/posts/slug/:slug?include=author, comments ||
  * GET /api/admin/posts/slug/:slug?include=author,tags,category
@@ -193,47 +227,26 @@ export const postBySlugAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
-  const { postSlug } = req.params;
-  if (!postSlug)
-    return res.status(400).json({ status: "error", message: "Bad request." });
+  const { slug } = req.params;
+  if (!slug)
+    return sendResponse(res, "error", "Bad request: missing paramteters.");
   try {
-    const post = await prisma.post.findUnique({
-      where: { slug: postSlug },
-      include: {
-        author: {
-          select: { id: true, email: true, username: true, avatarId: true },
-        },
-        comments: {
-          select: { id: true, content: true, createdAt: true, updatedAt: true },
-          include: {
-            author: {
-              select: { id: true, username: true, avatarId: true },
-            },
-          },
-        },
-        _count: {
-          select: { likes: true, comments: true },
-        },
-      },
+    const { include, where } = buildQueryOptions(req.query, true);
+
+    const post = await prisma.post.findFirst({
+      where,
+      include,
     });
 
     if (!post)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Post is not found." });
+      return sendResponse(res, "error", "Post not found.", undefined, 404);
 
-    res.json({
-      status: "success",
-      message: "Post found successfully.",
-      data: {
-        post,
-      },
+    return sendResponse(res, "success", "Post retrieved successfully.", {
+      post,
     });
   } catch (err) {
     console.error("Error getting post by slug: ", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal Server Error." });
+    return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
   }
 };
 

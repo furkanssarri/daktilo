@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { ResponseJsonObject } from "../types/response.js";
 import prisma from "../db/prismaClient.js";
-import { Post } from "@prisma/client";
+import { Post as PostType } from "@prisma/client";
 import { buildQueryOptions } from "../utils/includeBuilder.js";
 import sendResponse from "../utils/responseUtil.js";
 
@@ -12,7 +12,7 @@ import sendResponse from "../utils/responseUtil.js";
  */
 export const allPostsGetPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ posts: Post[] }>>,
+  res: Response<ResponseJsonObject<{ posts: PostType[] }>>,
 ) => {
   try {
     const { include, where } = buildQueryOptions(req.query, false);
@@ -38,7 +38,7 @@ export const allPostsGetPublic = async (
  */
 export const singlePostBySlugPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ post: Post }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const { slug } = req.params;
   if (!slug)
@@ -74,7 +74,7 @@ export const singlePostBySlugPublic = async (
  */
 export const singlePostByIdPublic = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ post: Post }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const { id } = req.params;
   if (!id) return sendResponse(res, "error", "Bad request, ID is missing.");
@@ -149,7 +149,7 @@ export const likePostUser = async (
  */
 export const commentPostUser = async (
   req: Request,
-  res: Response<ResponseJsonObject<{ post: Post }>>,
+  res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const userId = req.user?.id;
   const { postId } = req.params;

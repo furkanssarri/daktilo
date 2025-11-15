@@ -17,6 +17,7 @@ import {
   deleteCommentAdmin,
   approveDisapproveCommentsAdmin,
   uploadPostImageAdmin,
+  postByIdAdmin,
 } from "../controllers/adminController.js";
 
 import {
@@ -43,7 +44,8 @@ router.put("/posts/:id", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
 router.get("/posts", getAllPostsAdmin);
-router.get("/posts/:slug", postBySlugAdmin);
+router.get("/posts/slug/:slug", postBySlugAdmin);
+router.get("/posts/id/:id", postByIdAdmin);
 
 router.put("/posts/:id/publish", publishUnpublishPostAdmin);
 
