@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import type { CategoryDTO, TagDTO } from "@/types/EntityTypes";
+import type { Category as CategoryType, Tag as TagType } from "@prisma/client";
 
 interface SelectCategoryTagProps {
-  categories: CategoryDTO[];
-  tags: TagDTO[];
+  categories: CategoryType[];
+  tags: TagType[];
   selectedCategory: string | null;
   selectedTags: string[];
   onCategoryChange: (categoryId: string | null) => void;
