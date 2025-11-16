@@ -3,27 +3,46 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Post as PostType } from "@prisma/client";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
+import { toast } from "sonner";
 
 const EditPost = () => {
-  const { id } = useParams();
-
+  const { slug } = useParams();
   const [post, setPost] = useState<PostType | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     adminPostsApi
-      .getById(id)
+      .getBySlug(slug)
       .then((data) => setPost(data))
-      .catch((err) => console.error("Failed to fetch the post: ", err));
-  }, [id]);
+      .catch((err) => {
+        console.error("Failed to fetch post:", err);
+        toast.error("Error", {
+          description: "Failed to load post details.",
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [slug]);
 
-  if (!post) return <p>Loading post...</p>;
+  if (loading) {
+    return (
+      <div className="text-muted-foreground flex h-[50vh] items-center justify-center">
+        Loading post details...
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="text-muted-foreground flex h-[50vh] items-center justify-center">
+        Post not found.
+      </div>
+    );
+  }
 
   return (
     <>
-      <h1>Edit post form</h1>
-
-      <PostForm />
+      <PostForm mode="edit" initialData={post} />
     </>
   );
 };

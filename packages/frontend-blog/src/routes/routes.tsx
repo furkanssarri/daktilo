@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminAllPosts from "@/pages/Admin/AdminAllPosts";
 import AdminPost from "@/pages/Admin/AdminPost";
 import CreatePost from "@/pages/Admin/CreatePost";
+import EditPost from "@/pages/Admin/EditPost";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
       { path: "admin/posts/", element: <AdminAllPosts /> },
       { path: "admin/posts/slug/:slug", element: <AdminPost /> },
       { path: "admin/posts/create", element: <CreatePost /> },
+      { path: "admin/posts/slug/:slug/edit", element: <EditPost /> },
       { path: "*", element: <NotFound /> },
     ],
   },

@@ -70,6 +70,7 @@ PUT     /api/admin/posts/:id                 // Update an existing post
 DELETE  /api/admin/posts/:id                 // Delete a post by ID
 GET     /api/admin/posts                     // Get all posts (published + unpublished)
 GET     /api/admin/posts/slug/:slug          // Get a post by slug (published + unpublished)
+GET     /api/admin/posts/id/:id              // Get a post by id (published + unpublished)
 PUT     /api/admin/posts/:id/publish         // Toggle post's publish/unpublish status
 
 // CATEGORIES (ADMIN)

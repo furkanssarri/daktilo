@@ -84,8 +84,8 @@ const adminPostsApi = {
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: Partial<PostWithRelations>) =>
-    apiRequest<PostWithRelations>(`/admin/posts/${id}`, {
+  update: (slug: string, data: Partial<PostWithRelations>) =>
+    apiRequest<PostWithRelations>(`/admin/posts/${slug}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),

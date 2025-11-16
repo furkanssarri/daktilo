@@ -14,16 +14,30 @@ import { Separator } from "@/components/ui/separator";
 // import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
 import type { CreatePostFormData } from "@/types/EntityTypes";
+import type { Post as PostType } from "@prisma/client";
 // import { useNavigate } from "react-router-dom";
 
-const PostForm = () => {
+type CreateProps = {
+  mode: "create";
+  initialData?: undefined;
+};
+
+type EditProps = {
+  mode: "edit";
+  initialData: PostType;
+};
+
+type PostFormProps = CreateProps | EditProps;
+
+const PostForm = ({ mode, initialData }: PostFormProps) => {
+  const isEdit = mode === "edit";
   // const navigate = useNavigate()
   const [isSubmitting, setIsSubmiting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreatePostFormData>({
-    title: "",
-    excerpt: "",
-    content: "",
+    title: isEdit ? initialData.title : "",
+    excerpt: isEdit ? (initialData.excerpt ?? "") : "",
+    content: isEdit ? initialData.content : "",
   });
 
   const handleChange = (
@@ -42,19 +56,44 @@ const PostForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmiting(!isSubmitting);
+    setIsSubmiting(true);
+
+    if (mode === "create") {
+      await handleCreate();
+    } else {
+      await handleEdit();
+    }
+
+    setIsSubmiting(false);
+  };
+
+  const handleCreate = async () => {
     const newPost = await adminPostsApi.create(formData);
-    console.log(newPost);
-    console.log(imageFile?.name);
+
+    if (imageFile) {
+      const uploaded = await adminPostsApi.uploadImage(imageFile);
+      console.log("Uploaded image:", uploaded);
+    }
+
+    console.log("Created:", newPost);
+  };
+
+  const handleEdit = async () => {
+    if (!initialData) return;
+    const updatedPost = await adminPostsApi.update(initialData.slug, formData);
+
+    if (imageFile) {
+      const uploaded = await adminPostsApi.uploadImage(imageFile);
+      console.log("Updated image:", uploaded);
+    }
+
+    console.log("Updated:", updatedPost);
   };
 
   return (
     <Card className="mx-auto max-w-3xl">
       <CardHeader>
-        <CardTitle>
-          {/* initialData ? "Edit Post" : "Create New Post"*/}
-          Create or edit post
-        </CardTitle>
+        <CardTitle>{initialData ? "Edit Post" : "Create New Post"}</CardTitle>
       </CardHeader>
 
       <Separator />
@@ -119,15 +158,12 @@ const PostForm = () => {
         </CardContent>
 
         <CardFooter className="flex justify-end">
-          {/* <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
               ? "Saving..."
-              : 'initialData'
+              : initialData
                 ? "Update Post"
                 : "Create Post"}
-          </Button> */}
-          <Button className="w-full" type="submit" disabled={isSubmitting}>
-            Save
           </Button>
         </CardFooter>
       </form>

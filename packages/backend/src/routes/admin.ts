@@ -40,7 +40,7 @@ router.put("/users/:id", userPutByAdmin);
 //  Post management
 // ===============================
 router.post("/posts", createNewPostAdmin);
-router.put("/posts/:id", updatePostAdmin);
+router.put("/posts/:slug", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
 router.get("/posts", getAllPostsAdmin);

@@ -57,15 +57,15 @@ const AdminAllPosts = () => {
       .catch((err) => console.error("Failed to fetch admin posts:", err));
   }, []);
 
-  const handleEdit = (post: PostType) => {
-    setSelectedPost(post);
-    setEditedPost({
-      title: post.title,
-      content: post.content,
-      excerpt: post.excerpt || "",
-    });
-    setIsDialogOpen(true);
-  };
+  // const handleEdit = (post: PostType) => {
+  //   setSelectedPost(post);
+  //   setEditedPost({
+  //     title: post.title,
+  //     content: post.content,
+  //     excerpt: post.excerpt || "",
+  //   });
+  //   setIsDialogOpen(true);
+  // };
 
   const handleUpdate = async () => {
     if (!selectedPost) return;
@@ -144,7 +144,7 @@ const AdminAllPosts = () => {
                 key={post.id}
                 className="hover:border-primary/30 cursor-pointer transition hover:shadow-sm"
               >
-                <Link to={`/admi/posts/slug/${post.slug}`}>
+                <Link to={`/admin/posts/slug/${post.slug}`}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl font-semibold">
@@ -170,7 +170,9 @@ const AdminAllPosts = () => {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => handleEdit(post)}
+                    onClick={() =>
+                      navigate(`/admin/posts/slug/${post.slug}/edit`)
+                    }
                   >
                     Edit
                   </Button>
