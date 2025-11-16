@@ -11,7 +11,10 @@ const EditPost = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
     adminPostsApi
       .getBySlug(slug)
       .then((data) => setPost(data))
