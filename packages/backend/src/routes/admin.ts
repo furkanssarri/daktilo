@@ -78,6 +78,6 @@ router.post("/tags", createTagAdmin);
 router.put("/tags/:id", updateTagAdmin);
 router.delete("/tags/:id", deleteTagAdmin);
 
-router.post("/upload", upload.single("file"), uploadPostImageAdmin);
+router.post("/posts/upload", upload.single("file"), uploadPostImageAdmin);
 
 export default router;

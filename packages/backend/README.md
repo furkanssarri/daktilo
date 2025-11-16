@@ -93,5 +93,5 @@ GET     /api/admin/users                     // Get all users
 PUT     /api/admin/users/:id                 // Update any user's profile or role
 
 // MEDIA (ADMIN)
-POST    /api/admin/upload                    // Upload a post image to Supabase (creates Media record)
+POST    /api/admin/posts/upload              // Upload a post image to Supabase (creates Media record)
 ```
