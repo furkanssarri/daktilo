@@ -12,16 +12,12 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 // import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
-import type { Post as PostType } from "@prisma/client";
-
-export type CreatePostFormData = {
-  title: PostType["title"];
-  content: PostType["content"];
-  excerpt?: PostType["excerpt"];
-  categoryId?: PostType["categoryId"];
-};
+import adminPostsApi from "@/api/adminApi/adminPostApi";
+import type { CreatePostFormData } from "@/types/EntityTypes";
+// import { useNavigate } from "react-router-dom";
 
 const PostForm = () => {
+  // const navigate = useNavigate()
   const [isSubmitting, setIsSubmiting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreatePostFormData>({
@@ -44,12 +40,11 @@ const PostForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmiting(!isSubmitting);
-    console.log(formData.title);
-    console.log(formData.excerpt);
-    console.log(formData.content);
+    const newPost = await adminPostsApi.create(formData);
+    console.log(newPost);
     console.log(imageFile?.name);
   };
 

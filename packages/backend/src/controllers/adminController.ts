@@ -30,8 +30,6 @@ export const createNewPostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
-  const { title, content, excerpt, imageId } = req.body;
-
   if (!req.user || req.user.role !== "ADMIN")
     return sendResponse(
       res,
@@ -41,7 +39,11 @@ export const createNewPostAdmin = async (
       401,
     );
 
-  if (!title || content)
+  const { title, content, excerpt, imageId } = req.body;
+
+  console.log(title, content);
+
+  if (!title || !content)
     return sendResponse(
       res,
       "error",
