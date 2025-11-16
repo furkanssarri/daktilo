@@ -77,7 +77,7 @@ function Navbar() {
                       {user && user.role === "ADMIN" && (
                         <NavigationMenuLink asChild>
                           <Link
-                            to="/api/admin/me"
+                            to="/admin/me"
                             className={cn(
                               "hover:bg-muted block rounded-md px-3 py-2 text-sm transition-colors",
                               location.pathname === "/api/admin/me" &&
@@ -91,7 +91,7 @@ function Navbar() {
                       {user && user.role === "USER" && (
                         <NavigationMenuLink asChild>
                           <Link
-                            to="/api/user/me"
+                            to="/user/me"
                             className={cn(
                               "hover:bg-muted block rounded-md px-3 py-2 text-sm transition-colors",
                               location.pathname === "/api/users/me" &&

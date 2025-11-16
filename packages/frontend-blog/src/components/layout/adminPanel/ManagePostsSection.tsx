@@ -21,7 +21,9 @@ const ManagePostsSection = ({ allPosts }: ManagePostsSectionPropTypes) => {
     >
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Manage Posts</h2>
-        <Button variant="default">+ New Post</Button>
+        <Button asChild variant="default">
+          <Link to="/admin/posts/create">+ New Post</Link>
+        </Button>
       </div>
       <p className="text-muted-foreground">
         View, edit, or delete existing posts.
