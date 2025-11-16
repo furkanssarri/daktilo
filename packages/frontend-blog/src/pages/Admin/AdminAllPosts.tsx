@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -36,6 +37,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const AdminAllPosts = () => {
+  const posts = useScrollFadeIn();
+  const navigate = useNavigate();
+
   const [allPosts, setAllPosts] = useState<PostType[]>([]);
   const [selectedPost, setSelectedPost] = useState<PostType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,8 +49,6 @@ const AdminAllPosts = () => {
     content: "",
     excerpt: "",
   });
-  const posts = useScrollFadeIn();
-  const navigate = useNavigate();
 
   useEffect(() => {
     adminPostsApi
@@ -55,15 +57,15 @@ const AdminAllPosts = () => {
       .catch((err) => console.error("Failed to fetch admin posts:", err));
   }, []);
 
-  const handleEdit = (post: PostType) => {
-    setSelectedPost(post);
-    setEditedPost({
-      title: post.title,
-      content: post.content,
-      excerpt: post.excerpt || "",
-    });
-    setIsDialogOpen(true);
-  };
+  // const handleEdit = (post: PostType) => {
+  //   setSelectedPost(post);
+  //   setEditedPost({
+  //     title: post.title,
+  //     content: post.content,
+  //     excerpt: post.excerpt || "",
+  //   });
+  //   setIsDialogOpen(true);
+  // };
 
   const handleUpdate = async () => {
     if (!selectedPost) return;
@@ -128,6 +130,9 @@ const AdminAllPosts = () => {
           Browse through every published post on the platform.
         </p>
 
+        <Button asChild variant="default" className="mt-4">
+          <Link to="/admin/posts/create">Create New Post</Link>
+        </Button>
         <div className="space-y-4">
           {allPosts.length === 0 ? (
             <p className="text-muted-foreground py-10 text-center">
@@ -139,7 +144,7 @@ const AdminAllPosts = () => {
                 key={post.id}
                 className="hover:border-primary/30 cursor-pointer transition hover:shadow-sm"
               >
-                <Link to={`/admi/posts/slug/${post.slug}`}>
+                <Link to={`/admin/posts/slug/${post.slug}`}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl font-semibold">
@@ -153,33 +158,35 @@ const AdminAllPosts = () => {
                       {post.excerpt || "No excerpt available."}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/admin/posts/slug/${post.slug}`)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEdit(post)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setIsDeleteOpen(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </CardContent>
                 </Link>
+                <CardContent className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/admin/posts/slug/${post.slug}`)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/admin/posts/slug/${post.slug}/edit`)
+                    }
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPost(post);
+                      setIsDeleteOpen(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </CardContent>
               </Card>
             ))
           )}
@@ -191,6 +198,9 @@ const AdminAllPosts = () => {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Post</DialogTitle>
+            <DialogDescription>
+              Modify the fields below and save your changes.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

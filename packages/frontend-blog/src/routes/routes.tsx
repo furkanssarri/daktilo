@@ -13,6 +13,8 @@ import Profile from "@/pages/User/Profile";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminAllPosts from "@/pages/Admin/AdminAllPosts";
 import AdminPost from "@/pages/Admin/AdminPost";
+import CreatePost from "@/pages/Admin/CreatePost";
+import EditPost from "@/pages/Admin/EditPost";
 
 const router = createBrowserRouter([
   {
@@ -26,10 +28,12 @@ const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
       { path: "auth/signup", element: <Signup /> },
       { path: "auth/login", element: <Login /> },
-      { path: "api/users/me", element: <Profile /> },
-      { path: "api/admin/me", element: <AdminDashboard /> },
+      { path: "users/me", element: <Profile /> },
+      { path: "admin/me", element: <AdminDashboard /> },
       { path: "admin/posts/", element: <AdminAllPosts /> },
       { path: "admin/posts/slug/:slug", element: <AdminPost /> },
+      { path: "admin/posts/create", element: <CreatePost /> },
+      { path: "admin/posts/slug/:slug/edit", element: <EditPost /> },
       { path: "*", element: <NotFound /> },
     ],
   },

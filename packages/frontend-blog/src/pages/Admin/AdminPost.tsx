@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
@@ -61,6 +55,9 @@ const AdminPost = () => {
             {new Date(post.createdAt).toLocaleDateString()}
           </Badge>
           <Badge>{post.slug}</Badge>
+          <Badge variant={"outline"}>
+            {post.isPublished ? "Published" : "Not Published"}
+          </Badge>
         </div>
       </section>
 
@@ -70,7 +67,6 @@ const AdminPost = () => {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Content</CardTitle>
-          <CardDescription>Detailed post body and information.</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">

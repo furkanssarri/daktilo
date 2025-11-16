@@ -30,8 +30,6 @@ export const createNewPostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
-  const { title, content, excerpt, imageId } = req.body;
-
   if (!req.user || req.user.role !== "ADMIN")
     return sendResponse(
       res,
@@ -41,7 +39,9 @@ export const createNewPostAdmin = async (
       401,
     );
 
-  if (!title || content)
+  const { title, content, excerpt, imageId } = req.body;
+
+  if (!title || !content)
     return sendResponse(
       res,
       "error",
@@ -75,7 +75,7 @@ export const createNewPostAdmin = async (
  *
  * Accepts `title?: string`, `content?: string`,
  * excerpt?: string | null`, `imageId?: string | null`
- * updates a post by `postId`.
+ * updates a post by `slug`.
  * Returns the `updatedPost`.
  */
 export const updatePostAdmin = async (
@@ -83,12 +83,12 @@ export const updatePostAdmin = async (
   res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
   const updates: PostUpdateInput = req.body;
-  const { postId } = req.params;
-  if (!postId || !updates)
+  const { slug } = req.params;
+  if (!slug || !updates)
     return sendResponse(
       res,
       "error",
-      "Bad request: post missing parameter: post ID.",
+      "Bad request: post missing parameter: post slug.",
       undefined,
       400,
     );
@@ -96,7 +96,7 @@ export const updatePostAdmin = async (
     const update = { ...updates };
 
     const updatedPost = await prisma.post.update({
-      where: { id: postId },
+      where: { slug: slug },
       data: update,
     });
 
@@ -207,7 +207,9 @@ export const postByIdAdmin = async (
     if (!post)
       return sendResponse(res, "error", "Post not found.", undefined, 404);
 
-    return sendResponse(res, "error", "Post retrieved successfully.", { post });
+    return sendResponse(res, "success", "Post retrieved successfully.", {
+      post,
+    });
   } catch (err) {
     console.error("Error getting post by id: ", err);
     return sendResponse(res, "error", "Internal Server Error.", undefined, 500);
@@ -231,10 +233,10 @@ export const postBySlugAdmin = async (
   if (!slug)
     return sendResponse(res, "error", "Bad request: missing paramteters.");
   try {
-    const { include, where } = buildQueryOptions(req.query, true);
+    const { include } = buildQueryOptions(req.query, true);
 
     const post = await prisma.post.findFirst({
-      where,
+      where: { slug: slug },
       include,
     });
 

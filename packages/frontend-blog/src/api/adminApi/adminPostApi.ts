@@ -1,6 +1,7 @@
 import { apiRequest } from "../apiClient";
 import buildIncludeQuery from "@/utils/buildIncludeQuery";
 import type { PostWithRelations } from "@/types/EntityTypes";
+import type { Media as MediaType } from "@prisma/client";
 
 const adminPostsApi = {
   /**
@@ -83,8 +84,8 @@ const adminPostsApi = {
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: Partial<PostWithRelations>) =>
-    apiRequest<PostWithRelations>(`/admin/posts/${id}`, {
+  update: (slug: string, data: Partial<PostWithRelations>) =>
+    apiRequest<PostWithRelations>(`/admin/posts/${slug}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
@@ -96,6 +97,22 @@ const adminPostsApi = {
     apiRequest<PostWithRelations>(`/admin/posts/${id}/publish`, {
       method: "PUT",
     }),
+
+  uploadImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiRequest<{
+      status: string;
+      message: string;
+      data: { media: MediaType };
+    }>("/admin/posts/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    return response.data.media;
+  },
 };
 
 export default adminPostsApi;

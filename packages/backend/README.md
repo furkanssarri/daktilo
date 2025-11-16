@@ -70,6 +70,7 @@ PUT     /api/admin/posts/:id                 // Update an existing post
 DELETE  /api/admin/posts/:id                 // Delete a post by ID
 GET     /api/admin/posts                     // Get all posts (published + unpublished)
 GET     /api/admin/posts/slug/:slug          // Get a post by slug (published + unpublished)
+GET     /api/admin/posts/id/:id              // Get a post by id (published + unpublished)
 PUT     /api/admin/posts/:id/publish         // Toggle post's publish/unpublish status
 
 // CATEGORIES (ADMIN)
@@ -93,5 +94,5 @@ GET     /api/admin/users                     // Get all users
 PUT     /api/admin/users/:id                 // Update any user's profile or role
 
 // MEDIA (ADMIN)
-POST    /api/admin/upload                    // Upload a post image to Supabase (creates Media record)
+POST    /api/admin/posts/upload              // Upload a post image to Supabase (creates Media record)
 ```

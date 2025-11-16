@@ -1,4 +1,8 @@
-import type { Comment as CommentType, Prisma } from "@prisma/client";
+import type {
+  Post as PostType,
+  Comment as CommentType,
+  Prisma,
+} from "@prisma/client";
 
 export type PostWithRelations = Prisma.PostGetPayload<{
   include: {
@@ -10,6 +14,13 @@ export type PostWithRelations = Prisma.PostGetPayload<{
     _count: true;
   };
 }>;
+
+export type CreatePostFormData = {
+  title: PostType["title"];
+  content: PostType["content"];
+  excerpt?: PostType["excerpt"];
+  categoryId?: PostType["categoryId"];
+};
 
 export type UserWithRelations = Prisma.UserGetPayload<{
   include: { posts: true; comments: true; avatar: true };

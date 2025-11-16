@@ -40,7 +40,7 @@ router.put("/users/:id", userPutByAdmin);
 //  Post management
 // ===============================
 router.post("/posts", createNewPostAdmin);
-router.put("/posts/:id", updatePostAdmin);
+router.put("/posts/:slug", updatePostAdmin);
 router.delete("/posts/:id", deletePostAdmin);
 
 router.get("/posts", getAllPostsAdmin);
@@ -78,6 +78,6 @@ router.post("/tags", createTagAdmin);
 router.put("/tags/:id", updateTagAdmin);
 router.delete("/tags/:id", deleteTagAdmin);
 
-router.post("/upload", upload.single("file"), uploadPostImageAdmin);
+router.post("/posts/upload", upload.single("file"), uploadPostImageAdmin);
 
 export default router;

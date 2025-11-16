@@ -12,12 +12,27 @@ export async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = localStorage.getItem("token");
+  const baseHeaders: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+  let normalizedHeaders: Record<string, string> = {};
+
+  if (options.headers instanceof Headers) {
+    normalizedHeaders = Object.fromEntries(options.headers.entries());
+  } else if (options.headers) {
+    normalizedHeaders = options.headers as Record<string, string>;
+  }
+
+  const headers: Record<string, string> = {
+    ...baseHeaders,
+    ...normalizedHeaders,
   };
+
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
@@ -41,7 +56,7 @@ export async function apiRequest<T>(
     }
 
     localStorage.clear();
-    if (logoutCallback) logoutCallback(); // use React navigate instead of full reload
+    if (logoutCallback) logoutCallback();
   }
 
   if (!res.ok) {

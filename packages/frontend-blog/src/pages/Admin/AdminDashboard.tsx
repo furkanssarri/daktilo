@@ -12,6 +12,7 @@ import OverviewSection from "@/components/layout/adminPanel/OverviewSection";
 import type { Post as PostType, Comment as CommentType } from "@prisma/client";
 import type { UserWithRelations } from "@/types/EntityTypes";
 import ManagePostsSection from "@/components/layout/adminPanel/ManagePostsSection";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const users = useScrollFadeIn();
@@ -67,6 +68,10 @@ const AdminDashboard = () => {
 
       {/* Manage Posts Section */}
       <ManagePostsSection allPosts={allPosts} />
+
+      <Button asChild variant="default">
+        <Link to="/admin/posts">View all posts</Link>
+      </Button>
 
       <Separator />
 
