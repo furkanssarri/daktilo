@@ -24,9 +24,9 @@ interface SelectCategoryTagProps {
   // categories: CategoryType[];
   // tags: TagType[];
   selectedCategory: string | null | undefined;
-  selectedTags?: string[];
+  selectedTags?: TagType[];
   onCategoryChange?: (categoryId: string | null) => void;
-  onTagsChange?: (tagIds: string[]) => void;
+  onTagsChange?: (tags: TagType[]) => void;
 }
 
 const SelectCategoryTag = ({
@@ -40,12 +40,13 @@ const SelectCategoryTag = ({
   const [openCategory, setOpenCategory] = useState(false);
   const [openTags, setOpenTags] = useState(false);
 
-  const toggleTag = (tagId: string) => {
+  const toggleTag = (tag: TagType) => {
     if (!onTagsChange || !Array.isArray(selectedTags)) return;
-    if (selectedTags.includes(tagId)) {
-      onTagsChange(selectedTags.filter((t) => t !== tagId));
+    const exists = selectedTags.some((t) => t.id === tag.id);
+    if (exists) {
+      onTagsChange(selectedTags.filter((t) => t.id !== tag.id));
     } else {
-      onTagsChange([...selectedTags, tagId]);
+      onTagsChange([...selectedTags, tag]);
     }
   };
 
@@ -114,14 +115,13 @@ const SelectCategoryTag = ({
         {/* Selected tag chips */}
         <div className="flex flex-wrap gap-2">
           {Array.isArray(selectedTags) && selectedTags.length > 0 ? (
-            selectedTags.map((tagId) => {
-              const tag = tags.find((t) => t.id === tagId);
+            selectedTags.map((tag) => {
               return (
                 <Badge
-                  key={tagId}
+                  key={tag?.id}
                   variant="secondary"
                   className="cursor-pointer"
-                  onClick={() => toggleTag(tagId)}
+                  onClick={() => toggleTag(tag)}
                 >
                   {tag?.name} ×
                 </Badge>
@@ -148,12 +148,14 @@ const SelectCategoryTag = ({
                   <CommandGroup heading="Tags">
                     {Array.isArray(tags) &&
                       tags.map((tag) => {
-                        const selected = selectedTags?.includes(tag.id);
+                        const selected = selectedTags?.some(
+                          (t) => t.id === tag.id,
+                        );
                         return (
                           <CommandItem
                             key={tag.id}
                             value={tag.name}
-                            onSelect={() => toggleTag(tag.id)}
+                            onSelect={() => toggleTag(tag)}
                           >
                             <div className="flex w-full items-center justify-between">
                               <span>{tag.name}</span>

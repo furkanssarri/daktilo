@@ -1,13 +1,13 @@
 import PostForm from "@/components/layout/adminPanel/PostForm";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Post as PostType } from "@prisma/client";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
 import { toast } from "sonner";
+import type { PostWithRelations } from "@/types/EntityTypes";
 
 const EditPost = () => {
   const { slug } = useParams();
-  const [post, setPost] = useState<PostType | null>(null);
+  const [post, setPost] = useState<PostWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +26,10 @@ const EditPost = () => {
       })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    console.log(post);
+  }, [post]);
 
   if (loading) {
     return (

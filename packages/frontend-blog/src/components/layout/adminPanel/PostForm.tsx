@@ -13,9 +13,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategoryTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
-import type { CreatePostFormData } from "@/types/EntityTypes";
-import type { Post as PostType } from "@prisma/client";
-// import { useNavigate } from "react-router-dom";
+import type {
+  CreatePostFormData,
+  PostWithRelations,
+} from "@/types/EntityTypes";
 
 type CreateProps = {
   mode: "create";
@@ -24,20 +25,21 @@ type CreateProps = {
 
 type EditProps = {
   mode: "edit";
-  initialData: PostType;
+  initialData: PostWithRelations;
 };
 
 type PostFormProps = CreateProps | EditProps;
 
 const PostForm = ({ mode, initialData }: PostFormProps) => {
   const isEdit = mode === "edit";
-  // const navigate = useNavigate()
   const [isSubmitting, setIsSubmiting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreatePostFormData>({
     title: isEdit ? initialData.title : "",
     excerpt: isEdit ? (initialData.excerpt ?? "") : "",
     content: isEdit ? initialData.content : "",
+    categoryId: isEdit ? (initialData.categoryId ?? null) : null,
+    tags: isEdit ? initialData.tags : [],
   });
 
   const handleChange = (
@@ -147,7 +149,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
           {/* Category & Tags */}
           <SelectCategoryTag
             selectedCategory={formData.categoryId}
-            // selectedTags={formData.tagIds}
+            selectedTags={formData.tags}
             onCategoryChange={(categoryId) =>
               setFormData((p) => ({ ...p, categoryId }))
             }
