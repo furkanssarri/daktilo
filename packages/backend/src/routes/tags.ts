@@ -6,8 +6,8 @@ import {
 } from "../controllers/categoryTagController.js";
 const router = Router();
 
-router.get("/tags", getTagsPublic);
-router.get("/tags/:name", getTagPublic);
-router.get("/tags/:name/posts", getPostsByTagPublic);
+router.get("/", getTagsPublic);
+router.get("/:name", getTagPublic);
+router.get("/name/posts", getPostsByTagPublic);
 
 export default router;

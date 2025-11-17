@@ -4,14 +4,57 @@ import { useScrollFadeIn } from "@/hooks/useScrollFadeIn";
 import type { Post as PostType } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import adminPostsApi from "@/api/adminApi/adminPostApi";
+import {
+  AlertDialogHeader,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@radix-ui/react-alert-dialog";
+import { toast } from "sonner";
 
 type ManagePostsSectionPropTypes = {
-  allPosts: PostType[] | [];
+  allPosts: PostType[];
+  setAllPosts: React.Dispatch<React.SetStateAction<PostType[]>>;
 };
 
-const ManagePostsSection = ({ allPosts }: ManagePostsSectionPropTypes) => {
+// TODO: REFACTOR THIS COMPONENT TO EXTRACT STANDALONE FOR REUSABILITY WITH ADMINALLPOSTS
+
+const ManagePostsSection = ({
+  allPosts,
+  setAllPosts,
+}: ManagePostsSectionPropTypes) => {
   const posts = useScrollFadeIn();
   const navigate = useNavigate();
+
+  const [selectedPost, setSelectedPost] = useState<PostType | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const handleDelete = async () => {
+    if (!selectedPost) return;
+    try {
+      await adminPostsApi.delete(selectedPost.id);
+      setAllPosts((prev) => prev.filter((p) => p.id !== selectedPost.id));
+      toast.success("Post deleted.", {
+        description: `“${selectedPost.title}” has been removed.`,
+      });
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      toast.error("Error", {
+        description: "Something went wrong while deleting the post.",
+      });
+    } finally {
+      setIsDeleteOpen(false);
+      setSelectedPost(null);
+    }
+  };
 
   const latestPosts = allPosts.slice(-3).reverse();
   return (
@@ -51,16 +94,47 @@ const ManagePostsSection = ({ allPosts }: ManagePostsSectionPropTypes) => {
                 >
                   View
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/admin/posts/slug/${post.slug}/edit`)
+                  }
+                >
                   Edit
                 </Button>
-                <Button variant="destructive" size="sm">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedPost(post);
+                    setIsDeleteOpen(true);
+                  }}
+                >
                   Delete
                 </Button>
               </CardContent>
             </Card>
           ))}
       </div>
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete “{selectedPost?.title}”? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };

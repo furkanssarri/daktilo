@@ -11,7 +11,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
+import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategoryTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
 import type { CreatePostFormData } from "@/types/EntityTypes";
 import type { Post as PostType } from "@prisma/client";

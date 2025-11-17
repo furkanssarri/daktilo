@@ -22,7 +22,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^6.19.0",
     "@supabase/supabase-js": "^2.79.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -47,7 +47,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/slug": "^5.0.9",
     "jest": "^30.2.0",
-    "prisma": "^6.18.0",
+    "prisma": "^6.19.0",
     "ts-jest": "^29.4.5",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
