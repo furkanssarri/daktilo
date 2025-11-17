@@ -11,7 +11,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-// import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
+import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
 import type { CreatePostFormData } from "@/types/EntityTypes";
 import type { Post as PostType } from "@prisma/client";
@@ -145,16 +145,14 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
           </div>
 
           {/* Category & Tags */}
-          {/* <SelectCategoryTag
-            categories={categories}
-            tags={tags}
+          <SelectCategoryTag
             selectedCategory={formData.categoryId}
-            selectedTags={formData.tagIds}
+            // selectedTags={formData.tagIds}
             onCategoryChange={(categoryId) =>
               setFormData((p) => ({ ...p, categoryId }))
             }
             onTagsChange={(tagIds) => setFormData((p) => ({ ...p, tagIds }))}
-          /> */}
+          />
         </CardContent>
 
         <CardFooter className="flex justify-end">

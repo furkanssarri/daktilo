@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,34 +17,51 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import type { Category as CategoryType, Tag as TagType } from "@prisma/client";
+import categoryApi from "@/api/categoryApi";
+import tagApi from "@/api/tagApi";
 
 interface SelectCategoryTagProps {
-  categories: CategoryType[];
-  tags: TagType[];
-  selectedCategory: string | null;
+  // categories: CategoryType[];
+  // tags: TagType[];
+  selectedCategory: string | null | undefined;
   selectedTags: string[];
-  onCategoryChange: (categoryId: string | null) => void;
-  onTagsChange: (tagIds: string[]) => void;
+  onCategoryChange?: (categoryId: string | null) => void;
+  onTagsChange?: (tagIds: string[]) => void;
 }
 
 const SelectCategoryTag = ({
-  categories,
-  tags,
   selectedCategory,
   selectedTags,
   onCategoryChange,
   onTagsChange,
 }: SelectCategoryTagProps) => {
+  const [categories, setCategories] = useState<CategoryType[] | []>([]);
+  const [tags, setTags] = useState<TagType[] | []>([]);
   const [openCategory, setOpenCategory] = useState(false);
   const [openTags, setOpenTags] = useState(false);
 
   const toggleTag = (tagId: string) => {
+    if (!onTagsChange) return;
     if (selectedTags.includes(tagId)) {
       onTagsChange(selectedTags.filter((t) => t !== tagId));
     } else {
       onTagsChange([...selectedTags, tagId]);
     }
   };
+
+  useEffect(() => {
+    categoryApi
+      .getAll()
+      .then((data) => setCategories(data))
+      .catch((err) => console.error("Failed to fetch categories: ", err));
+  }, []);
+
+  useEffect(() => {
+    tagApi
+      .getAll()
+      .then((data) => setTags(data))
+      .catch((err) => console.error("Failed to fetch tags: ", err));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -67,18 +84,20 @@ const SelectCategoryTag = ({
               <CommandList>
                 <CommandEmpty>No categories found.</CommandEmpty>
                 <CommandGroup heading="Categories">
-                  {categories.map((category) => (
-                    <CommandItem
-                      key={category.id}
-                      value={category.name}
-                      onSelect={() => {
-                        onCategoryChange(category.id);
-                        setOpenCategory(false);
-                      }}
-                    >
-                      {category.name}
-                    </CommandItem>
-                  ))}
+                  {Array.isArray(categories) &&
+                    categories.map((category) => (
+                      <CommandItem
+                        key={category.id}
+                        value={category.name}
+                        onSelect={() => {
+                          if (!onCategoryChange) return;
+                          onCategoryChange(category.id);
+                          setOpenCategory(false);
+                        }}
+                      >
+                        {category.name}
+                      </CommandItem>
+                    ))}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -94,7 +113,7 @@ const SelectCategoryTag = ({
 
         {/* Selected tag chips */}
         <div className="flex flex-wrap gap-2">
-          {selectedTags.length > 0 ? (
+          {Array.isArray(selectedTags) && selectedTags.length > 0 ? (
             selectedTags.map((tagId) => {
               const tag = tags.find((t) => t.id === tagId);
               return (
