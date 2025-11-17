@@ -13,7 +13,13 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Menu } from "lucide-react";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import CommandPalette from "@/components/custom/CommandPalette";
 
@@ -94,8 +100,7 @@ function Navbar() {
                             to="/user/me"
                             className={cn(
                               "hover:bg-muted block rounded-md px-3 py-2 text-sm transition-colors",
-                              location.pathname === "/api/users/me" &&
-                                "bg-muted",
+                              location.pathname === "/users/me" && "bg-muted",
                             )}
                           >
                             Profile
@@ -159,6 +164,10 @@ function Navbar() {
           </SheetTrigger>
 
           <SheetContent side="right" className="w-64">
+            <SheetTitle className="sr-only">Mobile Navigation Menu</SheetTitle>
+            <SheetDescription className="sr-only">
+              Navigation links and account actions
+            </SheetDescription>
             <nav className="mt-8 flex flex-col space-y-4 pl-4">
               {links.map((link) => (
                 <Link
@@ -176,26 +185,67 @@ function Navbar() {
 
               <div className="border-border/20 mt-4 border-t pt-4">
                 <p className="text-muted-foreground mb-2 text-sm">Account</p>
-                <Link
-                  to="/auth/login"
-                  onClick={() => setOpen(false)} // 👈 also close
-                  className={cn(
-                    "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
-                    location.pathname === "/auth/login" && "bg-muted",
-                  )}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/auth/signup"
-                  onClick={() => setOpen(false)} // 👈 also close
-                  className={cn(
-                    "hover:bg-muted mt-2 block rounded-md px-3 py-2 text-base font-medium transition-colors",
-                    location.pathname === "/auth/signup" && "bg-muted",
-                  )}
-                >
-                  Signup
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    {/* ADMIN */}
+                    {user?.role === "ADMIN" && (
+                      <Link
+                        to="/admin/me"
+                        className={cn(
+                          "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
+                          location.pathname === "/admin/me" && "bg-muted",
+                        )}
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+
+                    {/* USER */}
+                    {user?.role === "USER" && (
+                      <Link
+                        to="/user/me"
+                        className={cn(
+                          "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
+                          location.pathname === "/user/me" && "bg-muted",
+                        )}
+                      >
+                        Profile
+                      </Link>
+                    )}
+
+                    {/* LOGOUT */}
+                    <button
+                      onClick={() => handleLogout()}
+                      className="hover:bg-muted block w-full rounded-md px-3 py-2 text-left text-base font-medium transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* LOGIN */}
+                    <Link
+                      to="/auth/login"
+                      className={cn(
+                        "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
+                        location.pathname === "/auth/login" && "bg-muted",
+                      )}
+                    >
+                      Login
+                    </Link>
+
+                    {/* SIGNUP */}
+                    <Link
+                      to="/auth/signup"
+                      className={cn(
+                        "hover:bg-muted mt-2 block rounded-md px-3 py-2 text-base font-medium transition-colors",
+                        location.pathname === "/auth/signup" && "bg-muted",
+                      )}
+                    >
+                      Signup
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </SheetContent>

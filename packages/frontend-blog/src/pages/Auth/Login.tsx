@@ -23,7 +23,8 @@ const Login = () => {
       ) {
         localStorage.setItem("token", res.data.accessToken);
         localStorage.setItem("refreshToken", res.data.refreshToken);
-        navigate("/api/users/me");
+        window.dispatchEvent(new Event("auth-change"));
+        navigate("/users/me");
       } else {
         console.error("Login failed:", res.message);
       }
@@ -33,25 +34,25 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
+    <div className="flex min-h-[80vh] flex-col items-center justify-center px-6">
       {/* Header */}
-      <section className="text-center mb-12 space-y-4">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+      <section className="mb-12 space-y-4 text-center">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Welcome Back
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-md">
           Sign in to continue your journey with{" "}
           <span className="text-primary font-medium">Daktilo</span>.
         </p>
       </section>
 
       {/* Login Card */}
-      <Card className="w-full max-w-md p-8 shadow-sm border rounded-xl backdrop-blur-sm transition-all duration-300 hover:shadow-md">
+      <Card className="w-full max-w-md rounded-xl border p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md">
         <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium mb-1 text-muted-foreground"
+              className="text-muted-foreground mb-1 block text-sm font-medium"
             >
               Email address
             </label>
@@ -62,14 +63,14 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="focus:ring-2 focus:ring-primary"
+              className="focus:ring-primary focus:ring-2"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium mb-1 text-muted-foreground"
+              className="text-muted-foreground mb-1 block text-sm font-medium"
             >
               Password
             </label>
@@ -80,19 +81,19 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="focus:ring-2 focus:ring-primary"
+              className="focus:ring-primary focus:ring-2"
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-primary text-primary-foreground font-medium py-2 rounded-md hover:opacity-90 transition-opacity"
+            className="bg-primary text-primary-foreground w-full rounded-md py-2 font-medium transition-opacity hover:opacity-90"
           >
             Sign In
           </Button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-muted-foreground mt-6 text-center text-sm">
           Don’t have an account?{" "}
           <Link to="/auth/signup" className="text-primary hover:underline">
             Create one
