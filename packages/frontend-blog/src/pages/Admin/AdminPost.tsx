@@ -89,7 +89,7 @@ const AdminPost = () => {
         </Button>
         <Button
           variant="secondary"
-          onClick={() => navigate(`/admin/posts/${post.slug}/edit`)}
+          onClick={() => navigate(`/admin/posts/slug/${post.slug}/edit`)}
         >
           Edit Post
         </Button>

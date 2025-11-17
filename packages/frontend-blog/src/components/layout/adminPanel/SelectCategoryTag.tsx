@@ -83,7 +83,7 @@ const SelectCategoryTag = ({
             <Command>
               <CommandInput placeholder="Search category..." />
               <CommandList>
-                {/* <CommandEmpty>No categories found.</CommandEmpty> */}
+                <CommandEmpty>No categories found.</CommandEmpty>
                 <CommandGroup heading="Categories">
                   {Array.isArray(categories) &&
                     categories.map((category) => (

@@ -13,10 +13,13 @@ import type {
 import { buildQueryOptions } from "../utils/includeBuilder.js";
 import sendResponse from "../utils/responseUtil.js";
 import generateUniqueSlug from "../utils/generateSlug.js";
+import { PostUpdateRelationsInput } from "../types/BackendEntityTypes.js";
 
 type PostUpdateInput = Partial<
   Pick<PostType, "title" | "content" | "excerpt" | "imageId">
 >;
+
+type PostUpdatePayload = PostUpdateInput & PostUpdateRelationsInput;
 /**
  * POST api/admin/posts
  *
@@ -82,25 +85,45 @@ export const updatePostAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ post: PostType }>>,
 ) => {
-  const updates: PostUpdateInput = req.body;
   const { slug } = req.params;
-  if (!slug || !updates)
-    return sendResponse(
-      res,
-      "error",
-      "Bad request: post missing parameter: post slug.",
-      undefined,
-      400,
-    );
+  const updates: PostUpdatePayload = req.body;
+
+  if (!slug)
+    return sendResponse(res, "error", "Missing post slug.", undefined, 400);
+
   try {
-    const update = { ...updates };
+    const update: any = {
+      title: updates.title,
+      content: updates.content,
+      excerpt: updates.excerpt,
+      imageId: updates.imageId,
+    };
+
+    // category update
+    if (typeof updates.categoryId !== "undefined") {
+      update.categories =
+        updates.categoryId ?
+          { connect: { id: updates.categoryId } }
+        : { disconnect: true };
+    }
+
+    // tags update
+    if (Array.isArray(updates.tagIds)) {
+      update.tags = {
+        set: updates.tagIds.map((id) => ({ id })),
+      };
+    }
 
     const updatedPost = await prisma.post.update({
-      where: { slug: slug },
+      where: { slug },
       data: update,
+      include: {
+        tags: true,
+        categories: true,
+      },
     });
 
-    return sendResponse(res, "success", "Post updated successfully,", {
+    return sendResponse(res, "success", "Post updated successfully.", {
       post: updatedPost,
     });
   } catch (err) {
