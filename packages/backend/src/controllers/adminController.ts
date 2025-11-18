@@ -52,19 +52,38 @@ export const createNewPostAdmin = async (
       undefined,
       400,
     );
+
   const slugifiedTitle = await generateUniqueSlug(title);
+
   try {
     const newPost = await prisma.post.create({
       data: {
         title,
         content,
-        excerpt: excerpt ? excerpt : null,
+        excerpt: excerpt ?? null,
         slug: slugifiedTitle,
         authorId: req.user.id,
+
+        // ---- CATEGORY RELATION ----
+        ...(categoryId && {
+          categories: { connect: { id: categoryId } },
+        }),
+
+        // ---- TAG RELATION ----
+        ...(Array.isArray(tagIds) &&
+          tagIds.length > 0 && {
+            tags: {
+              connect: tagIds.map((id) => ({ id })),
+            },
+          }),
+      },
+      include: {
+        categories: true,
+        tags: true,
       },
     });
 
-    return sendResponse(res, "success", "Post created successfully,", {
+    return sendResponse(res, "success", "Post created successfully.", {
       post: newPost,
     });
   } catch (err) {
