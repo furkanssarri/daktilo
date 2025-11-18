@@ -78,17 +78,31 @@ const adminPostsApi = {
     return response.data.post;
   },
 
-  create: (data: Partial<PostWithRelations>) =>
-    apiRequest<PostWithRelations>("/admin/posts", {
+  create: async (data: Partial<PostWithRelations>) => {
+    const response = await apiRequest<{
+      status: string;
+      message: string;
+      data: { post: PostWithRelations };
+    }>("/admin/posts", {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    });
 
-  update: (slug: string, data: Partial<PostWithRelations>) =>
-    apiRequest<PostWithRelations>(`/admin/posts/${slug}`, {
+    return response.data.post;
+  },
+
+  update: async (slug: string, data: Partial<PostWithRelations>) => {
+    const response = await apiRequest<{
+      status: string;
+      message: string;
+      data: { post: PostWithRelations };
+    }>(`/admin/posts/${slug}`, {
       method: "PUT",
       body: JSON.stringify(data),
-    }),
+    });
+
+    return response.data.post;
+  },
 
   delete: (id: string) =>
     apiRequest<void>(`/admin/posts/${id}`, { method: "DELETE" }),
