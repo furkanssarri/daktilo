@@ -12,7 +12,6 @@ import {
   NavigationMenuContent,
 } from "@/components/ui/navigation-menu";
 import { Menu } from "lucide-react";
-
 import {
   Sheet,
   SheetContent,
@@ -173,7 +172,7 @@ function Navbar() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  onClick={() => setOpen(false)}
+                  onClick={() => setOpen(!open)}
                   className={cn(
                     "text-muted-foreground hover:text-foreground text-lg font-medium transition-colors",
                     location.pathname === link.to && "text-foreground",
@@ -195,6 +194,7 @@ function Navbar() {
                           "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
                           location.pathname === "/admin/me" && "bg-muted",
                         )}
+                        onClick={() => setOpen(!open)}
                       >
                         Admin Panel
                       </Link>
@@ -208,6 +208,7 @@ function Navbar() {
                           "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
                           location.pathname === "/user/me" && "bg-muted",
                         )}
+                        onClick={() => setOpen(!open)}
                       >
                         Profile
                       </Link>
@@ -215,7 +216,10 @@ function Navbar() {
 
                     {/* LOGOUT */}
                     <button
-                      onClick={() => handleLogout()}
+                      onClick={() => {
+                        handleLogout();
+                        setOpen(!open);
+                      }}
                       className="hover:bg-muted block w-full rounded-md px-3 py-2 text-left text-base font-medium transition-colors"
                     >
                       Logout
@@ -230,6 +234,7 @@ function Navbar() {
                         "hover:bg-muted block rounded-md px-3 py-2 text-base font-medium transition-colors",
                         location.pathname === "/auth/login" && "bg-muted",
                       )}
+                      onClick={() => setOpen(!open)}
                     >
                       Login
                     </Link>
@@ -241,6 +246,7 @@ function Navbar() {
                         "hover:bg-muted mt-2 block rounded-md px-3 py-2 text-base font-medium transition-colors",
                         location.pathname === "/auth/signup" && "bg-muted",
                       )}
+                      onClick={() => setOpen(!open)}
                     >
                       Signup
                     </Link>

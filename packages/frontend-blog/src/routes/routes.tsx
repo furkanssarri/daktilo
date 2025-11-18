@@ -15,6 +15,9 @@ import AdminAllPosts from "@/pages/Admin/AdminAllPosts";
 import AdminPost from "@/pages/Admin/AdminPost";
 import CreatePost from "@/pages/Admin/CreatePost";
 import EditPost from "@/pages/Admin/EditPost";
+import Unauthorized from "@/pages/Auth/Unauthorized";
+import ProtectedRoute from "@/components/Auth/ProtectedRoute";
+import AdminRoute from "@/components/Auth/AdminRoute";
 
 const router = createBrowserRouter([
   {
@@ -22,18 +25,38 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Home /> },
-      { path: "blog", element: <Blog /> },
-      { path: "posts/id/:postId", element: <BlogPost /> },
       { path: "about", element: <About /> },
       { path: "contact", element: <Contact /> },
+
+      // Public blog routes
+      { path: "blog", element: <Blog /> },
+      { path: "posts/id/:postId", element: <BlogPost /> },
+
+      // Auth
       { path: "auth/signup", element: <Signup /> },
       { path: "auth/login", element: <Login /> },
-      { path: "users/me", element: <Profile /> },
-      { path: "admin/me", element: <AdminDashboard /> },
-      { path: "admin/posts/", element: <AdminAllPosts /> },
-      { path: "admin/posts/slug/:slug", element: <AdminPost /> },
-      { path: "admin/posts/create", element: <CreatePost /> },
-      { path: "admin/posts/slug/:slug/edit", element: <EditPost /> },
+
+      // Unauthorized page
+      { path: "unauthorized", element: <Unauthorized /> },
+
+      // Protected user routes
+      {
+        element: <ProtectedRoute />,
+        children: [{ path: "users/me", element: <Profile /> }],
+      },
+
+      // Admin-only routes
+      {
+        element: <AdminRoute />,
+        children: [
+          { path: "admin/me", element: <AdminDashboard /> },
+          { path: "admin/posts", element: <AdminAllPosts /> },
+          { path: "admin/posts/create", element: <CreatePost /> },
+          { path: "admin/posts/slug/:slug", element: <AdminPost /> },
+          { path: "admin/posts/slug/:slug/edit", element: <EditPost /> },
+        ],
+      },
+
       { path: "*", element: <NotFound /> },
     ],
   },
