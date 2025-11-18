@@ -38,6 +38,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     title: isEdit ? initialData.title : "",
     excerpt: isEdit ? (initialData.excerpt ?? "") : "",
     content: isEdit ? initialData.content : "",
+    imageId: isEdit ? initialData.imageId : "",
     categoryId: isEdit ? (initialData.categoryId ?? null) : null,
     tags: isEdit ? initialData.tags : [],
   });
@@ -70,25 +71,30 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   };
 
   const handleCreate = async () => {
-    const newPost = await adminPostsApi.create(formData);
+    const payload = { ...formData };
 
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Uploaded image:", uploaded);
+      payload.imageId = uploaded.id;
     }
 
+    const newPost = await adminPostsApi.create(payload);
     console.log("Created:", newPost);
   };
 
   const handleEdit = async () => {
     if (!initialData) return;
-    const updatedPost = await adminPostsApi.update(initialData.slug, formData);
+
+    const payload = { ...formData };
 
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Updated image:", uploaded);
+      payload.imageId = uploaded.id;
     }
 
+    const updatedPost = await adminPostsApi.update(initialData.slug, payload);
     console.log("Updated:", updatedPost);
   };
 

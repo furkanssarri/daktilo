@@ -125,8 +125,15 @@ export const updatePostAdmin = async (
       title: updates.title,
       content: updates.content,
       excerpt: updates.excerpt,
-      imageId: updates.imageId,
     };
+
+    // -------- IMAGE RELATION FIX --------
+    if (typeof updates.imageId !== "undefined") {
+      update.image =
+        updates.imageId ?
+          { connect: { id: updates.imageId } }
+        : { disconnect: true };
+    }
 
     // category update
     if (typeof updates.categoryId !== "undefined") {

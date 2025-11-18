@@ -66,6 +66,7 @@ const AdminPost = () => {
               </Badge>
             ))}
         </div>
+        {post.imageId && <span>{post.imageId}</span>}
       </section>
 
       <Separator />
