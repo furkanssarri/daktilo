@@ -42,7 +42,13 @@ export const createNewPostAdmin = async (
       401,
     );
 
-  const { title, content, excerpt, imageId, categoryId, tagIds } = req.body;
+  const { title, content, excerpt, imageId, categoryId, tags } = req.body;
+
+  if (Array.isArray(tags)) {
+    req.body.tags = {
+      set: tags.map((t) => ({ id: t.id })),
+    };
+  }
 
   if (!title || !content)
     return sendResponse(
@@ -70,10 +76,10 @@ export const createNewPostAdmin = async (
         }),
 
         // ---- TAG RELATION ----
-        ...(Array.isArray(tagIds) &&
-          tagIds.length > 0 && {
+        ...(Array.isArray(tags) &&
+          tags.length > 0 && {
             tags: {
-              connect: tagIds.map((id) => ({ id })),
+              connect: tags.map((t) => ({ id: t.id })),
             },
           }),
       },
@@ -127,9 +133,9 @@ export const updatePostAdmin = async (
     }
 
     // tags update
-    if (Array.isArray(updates.tagIds)) {
+    if (Array.isArray(updates.tags)) {
       update.tags = {
-        set: updates.tagIds.map((id) => ({ id })),
+        set: updates.tags.map((t) => ({ id: t.id })),
       };
     }
 

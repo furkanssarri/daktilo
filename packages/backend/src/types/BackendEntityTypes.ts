@@ -1,4 +1,6 @@
+import type { Tag as TagType } from "@prisma/client";
+
 export type PostUpdateRelationsInput = {
   categoryId?: string | null;
-  tagIds?: string[]; // array of tag IDs
+  tags?: TagType[]; // array of tag IDs
 };
