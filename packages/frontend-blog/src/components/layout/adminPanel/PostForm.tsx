@@ -147,14 +147,16 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
           </div>
 
           {/* Category & Tags */}
-          <SelectCategoryTag
-            selectedCategory={formData.categoryId}
-            selectedTags={formData.tags}
-            onCategoryChange={(categoryId) =>
-              setFormData((p) => ({ ...p, categoryId }))
-            }
-            onTagsChange={(tagIds) => setFormData((p) => ({ ...p, tagIds }))}
-          />
+          {formData.tags && (
+            <SelectCategoryTag
+              selectedCategory={formData.categoryId}
+              selectedTags={formData.tags}
+              onCategoryChange={(categoryId) =>
+                setFormData((p) => ({ ...p, categoryId }))
+              }
+              onTagsChange={(tags) => setFormData((p) => ({ ...p, tags }))}
+            />
+          )}
         </CardContent>
 
         <CardFooter className="flex justify-end">

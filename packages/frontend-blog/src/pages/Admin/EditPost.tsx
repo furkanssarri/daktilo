@@ -27,10 +27,6 @@ const EditPost = () => {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  useEffect(() => {
-    console.log(post);
-  }, [post]);
-
   if (loading) {
     return (
       <div className="text-muted-foreground flex h-[50vh] items-center justify-center">

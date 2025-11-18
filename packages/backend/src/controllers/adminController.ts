@@ -42,7 +42,7 @@ export const createNewPostAdmin = async (
       401,
     );
 
-  const { title, content, excerpt, imageId } = req.body;
+  const { title, content, excerpt, imageId, categoryId, tagIds } = req.body;
 
   if (!title || !content)
     return sendResponse(

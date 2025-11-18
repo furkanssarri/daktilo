@@ -50,7 +50,7 @@ const AdminPost = () => {
       <section className="space-y-3 text-center">
         <h1 className="text-4xl font-bold">{post.title}</h1>
         <p className="text-muted-foreground">{post.excerpt}</p>
-        <div className="text-muted-foreground flex justify-center gap-2 text-sm">
+        <div className="text-muted-foreground flex flex-wrap justify-center gap-2 text-sm">
           <Badge variant="secondary">
             {new Date(post.createdAt).toLocaleDateString()}
           </Badge>

@@ -40,13 +40,15 @@ const SelectCategoryTag = ({
   const [openCategory, setOpenCategory] = useState(false);
   const [openTags, setOpenTags] = useState(false);
 
+  const _selectedTags = selectedTags ?? [];
+
   const toggleTag = (tag: TagType) => {
-    if (!onTagsChange || !Array.isArray(selectedTags)) return;
-    const exists = selectedTags.some((t) => t.id === tag.id);
+    if (!onTagsChange || !Array.isArray(_selectedTags)) return;
+    const exists = _selectedTags.some((t) => t.id === tag.id);
     if (exists) {
-      onTagsChange(selectedTags.filter((t) => t.id !== tag.id));
+      onTagsChange(_selectedTags.filter((t) => t.id !== tag.id));
     } else {
-      onTagsChange([...selectedTags, tag]);
+      onTagsChange([..._selectedTags, tag]);
     }
   };
 
@@ -114,8 +116,8 @@ const SelectCategoryTag = ({
 
         {/* Selected tag chips */}
         <div className="flex flex-wrap gap-2">
-          {Array.isArray(selectedTags) && selectedTags.length > 0 ? (
-            selectedTags.map((tag) => {
+          {Array.isArray(_selectedTags) && _selectedTags.length > 0 ? (
+            _selectedTags.map((tag) => {
               return (
                 <Badge
                   key={tag?.id}
@@ -148,7 +150,7 @@ const SelectCategoryTag = ({
                   <CommandGroup heading="Tags">
                     {Array.isArray(tags) &&
                       tags.map((tag) => {
-                        const selected = selectedTags?.some(
+                        const selected = _selectedTags?.some(
                           (t) => t.id === tag.id,
                         );
                         return (
