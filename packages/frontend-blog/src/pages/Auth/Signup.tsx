@@ -118,6 +118,7 @@ const Signup = () => {
                   </Field>
                 )}
               />
+              {/* Email */}
               <Controller
                 name="email"
                 control={form.control}
@@ -128,7 +129,7 @@ const Signup = () => {
                       {...field}
                       id="signup-form-email"
                       aria-invalid={fieldState.invalid}
-                      placeholder="Your email..."
+                      placeholder="you@example.com"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -136,6 +137,7 @@ const Signup = () => {
                   </Field>
                 )}
               />
+              {/* Password */}
               <Controller
                 name="password"
                 control={form.control}

@@ -8,3 +8,10 @@ export const signupSchema = z.object({
 
 // TypeScript type inferred from schema:
 export type SignupFormValues = z.infer<typeof signupSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(1, "Password required"),
+});
+
+export type LoginFormValues = z.infer<typeof loginSchema>;
