@@ -7,7 +7,6 @@ import "./config/passport.js";
 import { requireAuth } from "./middlewares/requireAuth.js";
 import { requireRole } from "./middlewares/requireRole.js";
 
-import indexRouter from "./routes/index.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
 import usersRouter from "./routes/users.js";
@@ -35,7 +34,6 @@ app.use("/api/categories", categoryRouter);
 app.use("/api/posts", postsRouter);
 app.use("/api/users", requireAuth, requireRole("ADMIN", "USER"), usersRouter);
 app.use("/api/admin", requireAuth, requireRole("ADMIN"), adminRouter);
-app.use("/", indexRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT, (err) => {

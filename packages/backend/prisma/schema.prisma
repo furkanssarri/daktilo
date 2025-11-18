@@ -48,7 +48,7 @@ model Post {
 
   image      Media?    @relation("PostImage", fields: [imageId], references: [id], onDelete: SetNull)
   author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  categories Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categories Category? @relation("CategoryToPosts", fields: [categoryId], references: [id], onDelete: Cascade)
   comments   Comment[]
   likes      Like[]
   tags       Tag[]
@@ -110,7 +110,7 @@ model Category {
   id          String  @id @default(cuid())
   name        String  @unique
   description String?
-  posts       Post[]
+  posts       Post[]  @relation("CategoryToPosts")
 
   @@map("categories")
 }

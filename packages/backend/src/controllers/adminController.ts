@@ -70,11 +70,15 @@ export const createNewPostAdmin = async (
         slug: slugifiedTitle,
         authorId: req.user.id,
 
-        // ---- CATEGORY RELATION ----
+        // ---- CATEGORY ID ----
         ...(categoryId && {
-          categories: { connect: { id: categoryId } },
+          categoryId: categoryId,
         }),
 
+        // ---- IMAGE ID ----
+        ...(imageId && {
+          imageId: imageId,
+        }),
         // ---- TAG RELATION ----
         ...(Array.isArray(tags) &&
           tags.length > 0 && {
