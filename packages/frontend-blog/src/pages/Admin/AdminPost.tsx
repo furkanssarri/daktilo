@@ -7,11 +7,24 @@ import { Button } from "@/components/ui/button";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
 import { toast } from "sonner";
 import type { PostWithRelations } from "@/types/EntityTypes";
+import {
+  AlertDialogHeader,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 const AdminPost = () => {
   const { slug } = useParams();
   const [post, setPost] = useState<PostWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +40,25 @@ const AdminPost = () => {
       })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  const handleDelete = async () => {
+    if (!post) return;
+    try {
+      await adminPostsApi.delete(post.id);
+      setPost(null);
+      toast.success("Post deleted.", {
+        description: `“${post.title}” has been removed.`,
+      });
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      toast.error("Error", {
+        description: "Something went wrong while deleting the post.",
+      });
+    } finally {
+      setIsDeleteOpen(false);
+    }
+    navigate(-1);
+  };
 
   if (loading) {
     return (
@@ -94,7 +126,34 @@ const AdminPost = () => {
         >
           Edit Post
         </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => {
+            setIsDeleteOpen(true);
+          }}
+        >
+          Delete
+        </Button>
       </div>
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete “{post?.title}”? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

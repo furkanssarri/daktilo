@@ -17,6 +17,7 @@ import type {
   CreatePostFormData,
   PostWithRelations,
 } from "@/types/EntityTypes";
+import { useNavigate } from "react-router-dom";
 
 type CreateProps = {
   mode: "create";
@@ -31,6 +32,7 @@ type EditProps = {
 type PostFormProps = CreateProps | EditProps;
 
 const PostForm = ({ mode, initialData }: PostFormProps) => {
+  const navigate = useNavigate();
   const isEdit = mode === "edit";
   const [isSubmitting, setIsSubmiting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -75,12 +77,11 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
 
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
-      console.log("Uploaded image:", uploaded);
       payload.imageId = uploaded.id;
     }
 
     const newPost = await adminPostsApi.create(payload);
-    console.log("Created:", newPost);
+    navigate(`/admin/posts/slug/${newPost?.slug}`);
   };
 
   const handleEdit = async () => {
@@ -95,7 +96,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     }
 
     const updatedPost = await adminPostsApi.update(initialData.slug, payload);
-    console.log("Updated:", updatedPost);
+    navigate(`/admin/posts/slug/${updatedPost?.slug}`);
   };
 
   return (
