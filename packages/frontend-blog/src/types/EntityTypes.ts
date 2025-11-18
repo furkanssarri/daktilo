@@ -1,6 +1,7 @@
 import type {
   Post as PostType,
   Comment as CommentType,
+  Tag as TagType,
   Prisma,
 } from "@prisma/client";
 
@@ -20,6 +21,7 @@ export type CreatePostFormData = {
   content: PostType["content"];
   excerpt?: PostType["excerpt"];
   categoryId?: PostType["categoryId"];
+  tags: TagType[];
 };
 
 export type UserWithRelations = Prisma.UserGetPayload<{

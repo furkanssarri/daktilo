@@ -5,12 +5,12 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
-import type { Post as PostType } from "@prisma/client";
 import { toast } from "sonner";
+import type { PostWithRelations } from "@/types/EntityTypes";
 
 const AdminPost = () => {
   const { slug } = useParams();
-  const [post, setPost] = useState<PostType | null>(null);
+  const [post, setPost] = useState<PostWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -50,7 +50,7 @@ const AdminPost = () => {
       <section className="space-y-3 text-center">
         <h1 className="text-4xl font-bold">{post.title}</h1>
         <p className="text-muted-foreground">{post.excerpt}</p>
-        <div className="text-muted-foreground flex justify-center gap-2 text-sm">
+        <div className="text-muted-foreground flex flex-wrap justify-center gap-2 text-sm">
           <Badge variant="secondary">
             {new Date(post.createdAt).toLocaleDateString()}
           </Badge>
@@ -58,6 +58,13 @@ const AdminPost = () => {
           <Badge variant={"outline"}>
             {post.isPublished ? "Published" : "Not Published"}
           </Badge>
+          <Badge variant={"default"}>{post.categoryId}</Badge>
+          {Array.isArray(post.tags) &&
+            post.tags.map((tag) => (
+              <Badge key={tag.id} variant={"outline"}>
+                {tag.name}
+              </Badge>
+            ))}
         </div>
       </section>
 
@@ -82,7 +89,7 @@ const AdminPost = () => {
         </Button>
         <Button
           variant="secondary"
-          onClick={() => navigate(`/admin/posts/${post.slug}/edit`)}
+          onClick={() => navigate(`/admin/posts/slug/${post.slug}/edit`)}
         >
           Edit Post
         </Button>

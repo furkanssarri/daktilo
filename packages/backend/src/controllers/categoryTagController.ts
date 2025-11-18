@@ -17,7 +17,7 @@ export const getCategoriesPublic = async (
   try {
     const categories = await prisma.category.findMany();
 
-    if (!categories.length)
+    if (Array.isArray(categories) && !categories.length)
       return sendResponse(res, "error", "No categories found.", undefined, 404);
 
     return sendResponse(res, "success", "Categories retrieved successfully.", {
@@ -130,7 +130,7 @@ export const getTagsPublic = async (
   try {
     const tags = await prisma.tag.findMany();
 
-    if (!tags.length)
+    if (Array.isArray(tags) && !tags.length)
       return sendResponse(res, "error", "No tags found.", undefined, 404);
 
     return sendResponse(res, "success", "Tags retrieved successfully.", {

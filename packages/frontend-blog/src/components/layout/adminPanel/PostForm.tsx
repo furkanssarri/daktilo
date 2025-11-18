@@ -11,11 +11,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-// import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategorTag";
+import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategoryTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
-import type { CreatePostFormData } from "@/types/EntityTypes";
-import type { Post as PostType } from "@prisma/client";
-// import { useNavigate } from "react-router-dom";
+import type {
+  CreatePostFormData,
+  PostWithRelations,
+} from "@/types/EntityTypes";
 
 type CreateProps = {
   mode: "create";
@@ -24,20 +25,21 @@ type CreateProps = {
 
 type EditProps = {
   mode: "edit";
-  initialData: PostType;
+  initialData: PostWithRelations;
 };
 
 type PostFormProps = CreateProps | EditProps;
 
 const PostForm = ({ mode, initialData }: PostFormProps) => {
   const isEdit = mode === "edit";
-  // const navigate = useNavigate()
   const [isSubmitting, setIsSubmiting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreatePostFormData>({
     title: isEdit ? initialData.title : "",
     excerpt: isEdit ? (initialData.excerpt ?? "") : "",
     content: isEdit ? initialData.content : "",
+    categoryId: isEdit ? (initialData.categoryId ?? null) : null,
+    tags: isEdit ? initialData.tags : [],
   });
 
   const handleChange = (
@@ -145,16 +147,16 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
           </div>
 
           {/* Category & Tags */}
-          {/* <SelectCategoryTag
-            categories={categories}
-            tags={tags}
-            selectedCategory={formData.categoryId}
-            selectedTags={formData.tagIds}
-            onCategoryChange={(categoryId) =>
-              setFormData((p) => ({ ...p, categoryId }))
-            }
-            onTagsChange={(tagIds) => setFormData((p) => ({ ...p, tagIds }))}
-          /> */}
+          {formData.tags && (
+            <SelectCategoryTag
+              selectedCategory={formData.categoryId}
+              selectedTags={formData.tags}
+              onCategoryChange={(categoryId) =>
+                setFormData((p) => ({ ...p, categoryId }))
+              }
+              onTagsChange={(tags) => setFormData((p) => ({ ...p, tags }))}
+            />
+          )}
         </CardContent>
 
         <CardFooter className="flex justify-end">
