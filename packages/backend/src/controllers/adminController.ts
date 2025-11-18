@@ -125,8 +125,15 @@ export const updatePostAdmin = async (
       title: updates.title,
       content: updates.content,
       excerpt: updates.excerpt,
-      imageId: updates.imageId,
     };
+
+    // -------- IMAGE RELATION FIX --------
+    if (typeof updates.imageId !== "undefined") {
+      update.image =
+        updates.imageId ?
+          { connect: { id: updates.imageId } }
+        : { disconnect: true };
+    }
 
     // category update
     if (typeof updates.categoryId !== "undefined") {
@@ -754,7 +761,6 @@ export const uploadPostImageAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ media: MediaType }>>,
 ) => {
-  console.log("upload controller");
   const { file } = req;
   if (!file)
     return sendResponse(res, "error", "Bad request, no file uploaded.");

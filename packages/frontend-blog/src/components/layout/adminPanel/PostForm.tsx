@@ -47,16 +47,13 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, files, type } = e.target as HTMLInputElement;
-    console.log("Am i running?");
     if (type === "file" && files) {
       setImageFile(files[0]);
-      console.log("file is set");
     } else {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
-      console.log("file is NOT set");
     }
   };
 
@@ -74,33 +71,30 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   };
 
   const handleCreate = async () => {
+    const payload = { ...formData };
+
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Uploaded image:", uploaded);
-      setFormData({
-        ...formData,
-        imageId: uploaded.id,
-      });
+      payload.imageId = uploaded.id;
     }
 
-    const newPost = await adminPostsApi.create(formData);
-
+    const newPost = await adminPostsApi.create(payload);
     console.log("Created:", newPost);
   };
 
   const handleEdit = async () => {
     if (!initialData) return;
 
+    const payload = { ...formData };
+
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Updated image:", uploaded);
-      setFormData({
-        ...formData,
-        imageId: uploaded.id,
-      });
+      payload.imageId = uploaded.id;
     }
 
-    const updatedPost = await adminPostsApi.update(initialData.slug, formData);
+    const updatedPost = await adminPostsApi.update(initialData.slug, payload);
     console.log("Updated:", updatedPost);
   };
 
