@@ -754,6 +754,7 @@ export const uploadPostImageAdmin = async (
   req: Request,
   res: Response<ResponseJsonObject<{ media: MediaType }>>,
 ) => {
+  console.log("upload controller");
   const { file } = req;
   if (!file)
     return sendResponse(res, "error", "Bad request, no file uploaded.");

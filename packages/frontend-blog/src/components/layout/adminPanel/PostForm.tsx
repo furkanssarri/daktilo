@@ -38,6 +38,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     title: isEdit ? initialData.title : "",
     excerpt: isEdit ? (initialData.excerpt ?? "") : "",
     content: isEdit ? initialData.content : "",
+    imageId: isEdit ? initialData.imageId : "",
     categoryId: isEdit ? (initialData.categoryId ?? null) : null,
     tags: isEdit ? initialData.tags : [],
   });
@@ -46,13 +47,16 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, files, type } = e.target as HTMLInputElement;
+    console.log("Am i running?");
     if (type === "file" && files) {
       setImageFile(files[0]);
+      console.log("file is set");
     } else {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
+      console.log("file is NOT set");
     }
   };
 
@@ -70,25 +74,33 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   };
 
   const handleCreate = async () => {
-    const newPost = await adminPostsApi.create(formData);
-
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Uploaded image:", uploaded);
+      setFormData({
+        ...formData,
+        imageId: uploaded.id,
+      });
     }
+
+    const newPost = await adminPostsApi.create(formData);
 
     console.log("Created:", newPost);
   };
 
   const handleEdit = async () => {
     if (!initialData) return;
-    const updatedPost = await adminPostsApi.update(initialData.slug, formData);
 
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       console.log("Updated image:", uploaded);
+      setFormData({
+        ...formData,
+        imageId: uploaded.id,
+      });
     }
 
+    const updatedPost = await adminPostsApi.update(initialData.slug, formData);
     console.log("Updated:", updatedPost);
   };
 

@@ -20,6 +20,7 @@ export type CreatePostFormData = {
   title: PostType["title"];
   content: PostType["content"];
   excerpt?: PostType["excerpt"];
+  imageId?: PostType["imageId"];
   categoryId?: PostType["categoryId"];
   tags: TagType[];
 };
