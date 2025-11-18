@@ -1,4 +1,11 @@
+// packages/frontend-blog/src/components/layout/adminPanel/PostForm.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -11,13 +18,41 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+
 import SelectCategoryTag from "@/components/layout/adminPanel/SelectCategoryTag";
 import adminPostsApi from "@/api/adminApi/adminPostApi";
+
 import type {
   CreatePostFormData,
   PostWithRelations,
 } from "@/types/EntityTypes";
-import { useNavigate } from "react-router-dom";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+
+// type SchemaOutput = z.infer<typeof postSchema>;
+
+// // This checks compatibility without mutating the Zod type
+// type _Check = SchemaOutput extends CreatePostFormData
+//   ? CreatePostFormData extends SchemaOutput
+//     ? true
+//     : never
+//   : never;
+
+/**
+ * Validation schema.
+ * IMPORTANT: we do NOT assert the internal shape of tags or other Prisma types here.
+ * Instead we describe the same keys your CreatePostFormData contains, and cast
+ * the Zod type to `CreatePostFormData` so TypeScript continues to use your original types.
+ */
+const postSchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    excerpt: z.string().nullable().optional(),
+    content: z.string().min(1, "Content is required"),
+    imageId: z.string().nullable().optional(),
+    categoryId: z.string().optional().nullable(),
+    // keep tags as unknown to avoid changing your Tag type
+    tags: z.array(z.any()),
+  })
 
 type CreateProps = {
   mode: "create";
@@ -34,148 +69,172 @@ type PostFormProps = CreateProps | EditProps;
 const PostForm = ({ mode, initialData }: PostFormProps) => {
   const navigate = useNavigate();
   const isEdit = mode === "edit";
-  const [isSubmitting, setIsSubmiting] = useState(false);
+
+  // keep file out of form values (files aren't serializable)
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState<CreatePostFormData>({
+  const [isLoading, setIsLoading] = useState(false);
+
+  // build defaults from initialData but preserve your exact CreatePostFormData types
+  const defaultValues: CreatePostFormData = {
     title: isEdit ? initialData.title : "",
-    excerpt: isEdit ? (initialData.excerpt ?? "") : "",
+    excerpt: isEdit ? initialData.excerpt ?? "" : "",
     content: isEdit ? initialData.content : "",
-    imageId: isEdit ? initialData.imageId : "",
+    imageId: isEdit ? initialData.imageId ?? undefined : undefined,
     categoryId: isEdit ? (initialData.categoryId ?? null) : null,
     tags: isEdit ? initialData.tags : [],
+  };
+
+  const form = useForm<CreatePostFormData>({
+    resolver: zodResolver(postSchema),
+    defaultValues,
+    mode: "onTouched",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, files, type } = e.target as HTMLInputElement;
-    if (type === "file" && files) {
-      setImageFile(files[0]);
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmiting(true);
-
-    if (mode === "create") {
-      await handleCreate();
-    } else {
-      await handleEdit();
-    }
-
-    setIsSubmiting(false);
-  };
-
-  const handleCreate = async () => {
-    const payload = { ...formData };
+  // helper: build payload matching CreatePostFormData (typed)
+  const buildPayload = async (values: CreatePostFormData): Promise<CreatePostFormData> => {
+    const payload: CreatePostFormData = {
+      title: values.title,
+      excerpt: values.excerpt,
+      content: values.content,
+      imageId: values.imageId,
+      categoryId: values.categoryId,
+      tags: values.tags,
+    };
 
     if (imageFile) {
       const uploaded = await adminPostsApi.uploadImage(imageFile);
       payload.imageId = uploaded.id;
     }
 
-    const newPost = await adminPostsApi.create(payload);
-    navigate(`/admin/posts/slug/${newPost?.slug}`);
+    return payload;
   };
 
-  const handleEdit = async () => {
-    if (!initialData) return;
+  const onSubmit = async (values: CreatePostFormData) => {
+    setIsLoading(true);
+    try {
+      const payload = await buildPayload(values);
 
-    const payload = { ...formData };
-
-    if (imageFile) {
-      const uploaded = await adminPostsApi.uploadImage(imageFile);
-      console.log("Updated image:", uploaded);
-      payload.imageId = uploaded.id;
+      if (isEdit) {
+        if (!initialData) throw new Error("Missing initial data for edit");
+        const updated = await adminPostsApi.update(initialData.slug, payload);
+        navigate(`/admin/posts/slug/${updated?.slug}`);
+      } else {
+        const created = await adminPostsApi.create(payload);
+        navigate(`/admin/posts/slug/${created?.slug}`);
+      }
+    } catch (err) {
+      console.error("Post save error:", err);
+      // show server error UI here if you want
+    } finally {
+      setIsLoading(false);
     }
-
-    const updatedPost = await adminPostsApi.update(initialData.slug, payload);
-    navigate(`/admin/posts/slug/${updatedPost?.slug}`);
   };
+
+  // wire SelectCategoryTag with RHF via watch + setValue
+  const watchedCategoryId = form.watch("categoryId");
+  const watchedTags = form.watch("tags");
 
   return (
     <Card className="mx-auto max-w-3xl">
       <CardHeader>
-        <CardTitle>{initialData ? "Edit Post" : "Create New Post"}</CardTitle>
+        <CardTitle>{isEdit ? "Edit Post" : "Create New Post"}</CardTitle>
       </CardHeader>
 
       <Separator />
 
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-8 py-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
+      <CardContent className="space-y-8 py-6">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          {/* Title */}
+          <FieldGroup>
+            <Controller
               name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="title">Title</FieldLabel>
+                  <Input 
+                    id="title" 
+                    {...field} 
+                    aria-invalid={fieldState.invalid} 
+                    required 
+                  />
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} /> 
+                  )}
+                </Field>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="excerpt">Excerpt</Label>
-            <Input
-              id="excerpt"
+            {/* Excerpt */}
+            <Controller
               name="excerpt"
-              value={formData.excerpt ? formData.excerpt : ""}
-              onChange={handleChange}
-              required
-            />
-          </div>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="excerpt">Excerpt</FieldLabel>
+                    <Input 
+                      id="excerpt" 
+                      {...field} 
+                      value={field.value ?? ''} 
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]}/>
+                    )} 
+                    </Field>
+              )}
+              />
 
-          <div className="space-y-2">
-            <Label htmlFor="imageFile">Image</Label>
-            <Input
-              id="imageFile"
-              name="imageFile"
-              type="file"
-              onChange={handleChange}
-            />
-          </div>
+            {/* Image file input (local state) */}
+            <div className="space-y-2">
+              <Label htmlFor="imageFile">Image</Label>
+              <Input
+                id="imageFile"
+                name="imageFile"
+                type="file"
+                onChange={(e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+                  setImageFile(file);
+                }}
+              />
+              {form.getValues("imageId") && (
+                <p className="text-sm text-muted-foreground">Current image id: {String(form.getValues("imageId"))}</p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
-            <Textarea
-              className="h-100"
-              id="content"
+            {/* Content */}
+            <Controller
               name="content"
-              value={formData.content}
-              onChange={handleChange}
-              required
+              control={form.control}
+              render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                  <Label htmlFor="content">Content</Label>
+                  <Textarea id="content" {...field} className="h-100" />
+                  {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
-          </div>
 
-          {/* Category & Tags */}
-          {formData.tags && (
-            <SelectCategoryTag
-              selectedCategory={formData.categoryId}
-              selectedTags={formData.tags}
-              onCategoryChange={(categoryId) =>
-                setFormData((p) => ({ ...p, categoryId }))
-              }
-              onTagsChange={(tags) => setFormData((p) => ({ ...p, tags }))}
-            />
-          )}
-        </CardContent>
+            {/* Category & Tags */}
+            <div>
+              <SelectCategoryTag
+                selectedCategory={watchedCategoryId ?? null}
+                selectedTags={watchedTags ?? []}
+                onCategoryChange={(categoryId) => form.setValue("categoryId", categoryId ?? null, { shouldValidate: true })}
+                onTagsChange={(tags) => form.setValue("tags", tags ?? [], { shouldValidate: true })}
+              />
+            </div>
 
-        <CardFooter className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "Saving..."
-              : initialData
-                ? "Update Post"
-                : "Create Post"}
-          </Button>
-        </CardFooter>
-      </form>
+          </FieldGroup>
+          <CardFooter className="flex justify-end py-4">
+            <Button type="submit" disabled={isLoading || form.formState.isSubmitting}>
+              {isLoading || form.formState.isSubmitting ? "Saving..." : isEdit ? "Update Post" : "Create Post"}
+            </Button>
+          </CardFooter>
+        </form>
+      </CardContent>
     </Card>
   );
 };
