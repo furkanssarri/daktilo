@@ -45,9 +45,9 @@ export const Header = () => {
     <header
       className={`sticky top-0 z-50 backdrop-blur-sm transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
         scrolled
-          ? "bg-background/80 shadow-lg border border-border/90"
-          : "bg-transparent border-transparent"
-      } ${shrunk ? "top-3 py-0 scale-[0.92]" : "top-0 py-4 scale-100"}`}
+          ? "bg-background/80 border-border/90 border shadow-lg"
+          : "border-transparent bg-transparent"
+      } ${shrunk ? "top-3 scale-[0.92] py-0" : "top-0 scale-100 py-4"}`}
     >
       <div className="flex items-center justify-between px-6 transition-all duration-300">
         <h1
