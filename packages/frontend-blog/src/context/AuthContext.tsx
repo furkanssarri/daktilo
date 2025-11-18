@@ -21,15 +21,18 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   logout: () => void;
   refreshAuth: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<DecodedToken | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Decode and set user state from token
   const refreshAuth = useCallback(() => {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -47,6 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       setUser(null);
     }
+    setIsLoading(false);
   }, []);
 
   // Run on mount
@@ -87,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, logout, refreshAuth }}
+      value={{ user, isAuthenticated, logout, refreshAuth, isLoading }}
     >
       {children}
     </AuthContext.Provider>
