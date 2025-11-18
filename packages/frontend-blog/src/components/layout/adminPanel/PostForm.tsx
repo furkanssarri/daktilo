@@ -26,7 +26,12 @@ import type {
   CreatePostFormData,
   PostWithRelations,
 } from "@/types/EntityTypes";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 
 // type SchemaOutput = z.infer<typeof postSchema>;
 
@@ -43,16 +48,15 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
  * Instead we describe the same keys your CreatePostFormData contains, and cast
  * the Zod type to `CreatePostFormData` so TypeScript continues to use your original types.
  */
-const postSchema = z
-  .object({
-    title: z.string().min(1, "Title is required"),
-    excerpt: z.string().nullable().optional(),
-    content: z.string().min(1, "Content is required"),
-    imageId: z.string().nullable().optional(),
-    categoryId: z.string().optional().nullable(),
-    // keep tags as unknown to avoid changing your Tag type
-    tags: z.array(z.any()),
-  })
+const postSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  excerpt: z.string().nullable().optional(),
+  content: z.string().min(1, "Content is required"),
+  imageId: z.string().nullable().optional(),
+  categoryId: z.string().optional().nullable(),
+  // keep tags as unknown to avoid changing your Tag type
+  tags: z.array(z.any()),
+});
 
 type CreateProps = {
   mode: "create";
@@ -77,9 +81,9 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   // build defaults from initialData but preserve your exact CreatePostFormData types
   const defaultValues: CreatePostFormData = {
     title: isEdit ? initialData.title : "",
-    excerpt: isEdit ? initialData.excerpt ?? "" : "",
+    excerpt: isEdit ? (initialData.excerpt ?? "") : "",
     content: isEdit ? initialData.content : "",
-    imageId: isEdit ? initialData.imageId ?? undefined : undefined,
+    imageId: isEdit ? (initialData.imageId ?? undefined) : undefined,
     categoryId: isEdit ? (initialData.categoryId ?? null) : null,
     tags: isEdit ? initialData.tags : [],
   };
@@ -91,7 +95,9 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   });
 
   // helper: build payload matching CreatePostFormData (typed)
-  const buildPayload = async (values: CreatePostFormData): Promise<CreatePostFormData> => {
+  const buildPayload = async (
+    values: CreatePostFormData,
+  ): Promise<CreatePostFormData> => {
     const payload: CreatePostFormData = {
       title: values.title,
       excerpt: values.excerpt,
@@ -152,14 +158,14 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="title">Title</FieldLabel>
-                  <Input 
-                    id="title" 
-                    {...field} 
-                    aria-invalid={fieldState.invalid} 
-                    required 
+                  <Input
+                    id="title"
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    required
                   />
                   {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} /> 
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
@@ -170,20 +176,20 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
               name="excerpt"
               control={form.control}
               render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="excerpt">Excerpt</FieldLabel>
-                    <Input 
-                      id="excerpt" 
-                      {...field} 
-                      value={field.value ?? ''} 
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]}/>
-                    )} 
-                    </Field>
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="excerpt">Excerpt</FieldLabel>
+                  <Input
+                    id="excerpt"
+                    {...field}
+                    value={field.value ?? ""}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.error && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
-              />
+            />
 
             {/* Image file input (local state) */}
             <div className="space-y-2">
@@ -193,12 +199,15 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
                 name="imageFile"
                 type="file"
                 onChange={(e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+                  const file =
+                    (e.target as HTMLInputElement).files?.[0] ?? null;
                   setImageFile(file);
                 }}
               />
               {form.getValues("imageId") && (
-                <p className="text-sm text-muted-foreground">Current image id: {String(form.getValues("imageId"))}</p>
+                <p className="text-muted-foreground text-sm">
+                  Current image id: {String(form.getValues("imageId"))}
+                </p>
               )}
             </div>
 
@@ -207,11 +216,11 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
               name="content"
               control={form.control}
               render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
+                <Field data-invalid={fieldState.invalid}>
                   <Label htmlFor="content">Content</Label>
                   <Textarea id="content" {...field} className="h-100" />
                   {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
@@ -222,15 +231,27 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
               <SelectCategoryTag
                 selectedCategory={watchedCategoryId ?? null}
                 selectedTags={watchedTags ?? []}
-                onCategoryChange={(categoryId) => form.setValue("categoryId", categoryId ?? null, { shouldValidate: true })}
-                onTagsChange={(tags) => form.setValue("tags", tags ?? [], { shouldValidate: true })}
+                onCategoryChange={(categoryId) =>
+                  form.setValue("categoryId", categoryId ?? null, {
+                    shouldValidate: true,
+                  })
+                }
+                onTagsChange={(tags) =>
+                  form.setValue("tags", tags ?? [], { shouldValidate: true })
+                }
               />
             </div>
-
           </FieldGroup>
           <CardFooter className="flex justify-end py-4">
-            <Button type="submit" disabled={isLoading || form.formState.isSubmitting}>
-              {isLoading || form.formState.isSubmitting ? "Saving..." : isEdit ? "Update Post" : "Create Post"}
+            <Button
+              type="submit"
+              disabled={isLoading || form.formState.isSubmitting}
+            >
+              {isLoading || form.formState.isSubmitting
+                ? "Saving..."
+                : isEdit
+                  ? "Update Post"
+                  : "Create Post"}
             </Button>
           </CardFooter>
         </form>
