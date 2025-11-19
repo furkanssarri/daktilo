@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 import authApi from "@/api/authApi";
 
@@ -32,6 +33,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -144,14 +146,29 @@ const Signup = () => {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="signup-form-password">
-                      Password
+                      {" "}
+                      Password{" "}
                     </FieldLabel>
-                    <Input
-                      {...field}
-                      id="signup-form-password"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="Your password..."
-                    />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        id="signup-form-password"
+                        type={showPassword ? "text" : "password"}
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Your password..."
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex items-center text-sm"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
