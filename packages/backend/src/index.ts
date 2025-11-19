@@ -35,7 +35,7 @@ app.use("/api/posts", postsRouter);
 app.use("/api/users", requireAuth, requireRole("ADMIN", "USER"), usersRouter);
 app.use("/api/admin", requireAuth, requireRole("ADMIN"), adminRouter);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {
   if (err) {
     console.error(err);
