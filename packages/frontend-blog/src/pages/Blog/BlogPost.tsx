@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 
 const BlogPost = () => {
-  const { postId } = useParams();
+  const { slug } = useParams();
   const { user } = useAuth();
 
   const [post, setPost] = useState<PostWithRelations | null>(null);
@@ -25,9 +25,9 @@ const BlogPost = () => {
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
-    if (postId) {
+    if (slug) {
       postApi
-        .getBySlug(postId)
+        .getBySlug(slug)
         .then((post) => {
           setPost(post);
           setComments(post.comments ?? []);
@@ -38,7 +38,7 @@ const BlogPost = () => {
         })
         .catch((err) => console.error("Failed to fetch the post: ", err));
     }
-  }, [postId, user]);
+  }, [slug, user]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !post) return;
