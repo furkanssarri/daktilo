@@ -47,7 +47,7 @@ export const singlePostBySlugPublic = async (
     const { include, where } = buildQueryOptions(req.query, false);
 
     const post = await prisma.post.findFirst({
-      where,
+      where: { ...where, slug },
       include,
     });
 
@@ -83,7 +83,7 @@ export const singlePostByIdPublic = async (
     const { include, where } = buildQueryOptions(req.query, false);
 
     const post = await prisma.post.findFirst({
-      where,
+      where: { ...where, id },
       include,
     });
 

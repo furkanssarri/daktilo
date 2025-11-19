@@ -259,7 +259,7 @@ export const postByIdAdmin = async (
     const { include, where } = buildQueryOptions(req.query, true);
 
     const post = await prisma.post.findFirst({
-      where,
+      where: { ...where, id },
       include,
     });
 
