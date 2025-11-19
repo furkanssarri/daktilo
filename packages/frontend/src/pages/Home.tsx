@@ -64,7 +64,7 @@ export default function Home() {
                 <CardHeader>
                   <CardTitle>
                     <Link
-                      to={`/posts/id/${post.id}`}
+                      to={`/posts/slug/${post.slug}`}
                       className="text-lg leading-snug font-semibold hover:underline"
                     >
                       {post.title}
