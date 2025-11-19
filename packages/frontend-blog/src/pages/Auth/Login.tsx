@@ -13,11 +13,13 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate(); // hook for redirecting after login
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -106,11 +108,30 @@ const Login = () => {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="login-password">Password</FieldLabel>
-                    <Input
-                      {...field}
-                      id="login-password"
-                      placeholder="Your password"
-                    />
+
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Your password"
+                        aria-invalid={fieldState.invalid}
+                        className="pr-10" // space for button
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex items-center text-sm"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
