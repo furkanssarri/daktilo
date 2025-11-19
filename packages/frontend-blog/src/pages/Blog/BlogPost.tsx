@@ -25,19 +25,22 @@ const BlogPost = () => {
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
-    if (slug) {
-      postApi
-        .getBySlug(slug)
-        .then((post) => {
-          setPost(post);
-          setComments(post.comments ?? []);
-          if (user) {
-            const liked = post.likes?.some((like) => like.authorId === user.id);
-            setIsLiked(liked);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch the post: ", err));
-    }
+    if (!slug) return;
+
+    const load = async () => {
+      try {
+        const post = await postApi.getBySlug(slug);
+        setPost(post);
+        setComments(post.comments ?? []);
+
+        if (user) {
+          setIsLiked(post.likes?.some((l) => l.authorId === user.id) ?? false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch the post:", err);
+      }
+    };
+    load();
   }, [slug, user]);
 
   const handleAddComment = async () => {
@@ -109,7 +112,7 @@ const BlogPost = () => {
   }
 
   return (
-    <article className="mx-auto max-w-5xl space-y-12 px-6 py-16">
+    <article className="mx-auto max-w-5xl space-y-12 px-1 py-16">
       <Toaster position="top-center" />
       {/* Header Section */}
       <header className="space-y-6 text-center">
@@ -126,7 +129,7 @@ const BlogPost = () => {
             })}
           </p>
           {/* {post.readTime && <p>• {post.readTime} min read</p>} */}
-          <p>{post.categoryId}</p>
+          <p>{post.categories?.name}</p>
         </div>
       </header>
 
@@ -134,7 +137,7 @@ const BlogPost = () => {
       {post.imageId && (
         <div className="max-h-[480px] w-full overflow-hidden rounded-lg shadow-sm">
           <img
-            src={post.imageId || ""}
+            src={post.image?.url || ""}
             alt={post.title}
             className="h-full w-full object-cover"
           />
@@ -142,7 +145,7 @@ const BlogPost = () => {
       )}
 
       {/* Post Content */}
-      <Card className="prose dark:prose-invert mx-auto max-w-none px-8 py-10 leading-relaxed">
+      <Card className="prose dark:prose-invert mx-auto max-w-none px-4 py-10 leading-relaxed">
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </Card>
 
