@@ -38,6 +38,7 @@ const adminPostsApi = {
       comments: true,
       categories: true,
       tags: true,
+      image: true,
     },
   ): Promise<PostWithRelations> => {
     const query = buildIncludeQuery(options);
@@ -61,6 +62,7 @@ const adminPostsApi = {
       comments: true,
       categories: true,
       tags: true,
+      image: true,
     },
   ): Promise<PostWithRelations> => {
     const query = buildIncludeQuery(options);

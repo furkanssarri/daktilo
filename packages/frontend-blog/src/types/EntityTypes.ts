@@ -12,6 +12,7 @@ export type PostWithRelations = Prisma.PostGetPayload<{
     likes: true;
     tags: true;
     categories: true;
+    image: true;
     _count: true;
   };
 }>;

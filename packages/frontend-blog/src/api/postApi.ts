@@ -39,6 +39,7 @@ const postApi = {
       categories: true,
       tags: true,
       likes: true,
+      image: true,
     },
   ): Promise<PostWithRelations> => {
     const query = buildIncludeQuery(options);
@@ -68,6 +69,7 @@ const postApi = {
       categories: true,
       tags: true,
       likes: true,
+      image: true,
     },
   ): Promise<PostWithRelations> => {
     const query = buildIncludeQuery(options);

@@ -86,11 +86,10 @@ const AdminPost = () => {
           <Badge variant="secondary">
             {new Date(post.createdAt).toLocaleDateString()}
           </Badge>
-          <Badge>{post.slug}</Badge>
           <Badge variant={"outline"}>
             {post.isPublished ? "Published" : "Not Published"}
           </Badge>
-          <Badge variant={"default"}>{post.categoryId}</Badge>
+          <Badge variant={"default"}>{post.categories?.name}</Badge> <hr />
           {Array.isArray(post.tags) &&
             post.tags.map((tag) => (
               <Badge key={tag.id} variant={"outline"}>
@@ -98,7 +97,16 @@ const AdminPost = () => {
               </Badge>
             ))}
         </div>
-        {post.imageId && <span>{post.imageId}</span>}
+        {/* Featured Image */}
+        {post.imageId && (
+          <div className="max-h-[480px] w-full overflow-hidden rounded-lg shadow-sm">
+            <img
+              src={post.image?.url}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}{" "}
       </section>
 
       <Separator />

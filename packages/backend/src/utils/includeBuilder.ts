@@ -19,14 +19,14 @@ export const buildQueryOptions = (
       .forEach((part: string) => includeSet.add(part));
   }
 
-  // ✅ Author inclusion
+  //  Author inclusion
   if (includeSet.has("author")) {
     include.author = {
       select: { id: true, username: true, avatar: true },
     };
   }
 
-  // ✅ Comments inclusion (now with nested author)
+  //  Comments inclusion (now with nested author)
   if (includeSet.has("comments")) {
     include.comments = {
       include: {
@@ -35,7 +35,14 @@ export const buildQueryOptions = (
     };
   }
 
-  // ✅ Deep inclusion support for comments.author
+  // Image inclusion
+  if (includeSet.has("image")) {
+    include.image = {
+      select: { url: true, filename: true, postImage: true },
+    };
+  }
+
+  //  Deep inclusion support for comments.author
   if (includeSet.has("comments.author")) {
     include.comments = {
       include: {
@@ -44,12 +51,12 @@ export const buildQueryOptions = (
     };
   }
 
-  // ✅ Other relations
+  //  Other relations
   if (includeSet.has("categories")) include.categories = true;
   if (includeSet.has("tags")) include.tags = true;
   if (includeSet.has("likes")) include.likes = true;
 
-  // ✅ Filter unpublished posts for public routes
+  //  Filter unpublished posts for public routes
   if (!admin) where.isPublished = true;
 
   return { include, where };
