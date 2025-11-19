@@ -19,9 +19,21 @@ import path from "node:path";
 const app = express();
 const __dirname = path.resolve();
 
+const allowedOrigins = [
+  "http://localhost:5174",
+  "http://localhost:4173/",
+  "https://your-app-name.netlify.app",
+];
+
+app.use(cors());
+// app.use(
+//   cors({
+//     origin: allowedOrigins,
+//   }),
+// );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 app.use(express.static("public"));
 
 app.use(passport.initialize());

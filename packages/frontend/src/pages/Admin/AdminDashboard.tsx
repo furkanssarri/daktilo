@@ -67,7 +67,7 @@ const AdminDashboard = () => {
       <Separator />
 
       {/* Manage Posts Section */}
-      <ManagePostsSection allPosts={allPosts} />
+      <ManagePostsSection allPosts={allPosts} setAllPosts={setAllPosts} />
 
       <Button asChild variant="default">
         <Link to="/admin/posts">View all posts</Link>
