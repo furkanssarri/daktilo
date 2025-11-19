@@ -6,12 +6,10 @@
   "main": "index.js",
   "workspaces": [
     "packages/backend",
-    "packages/frontend-blog",
-    "packages/frontend-admin",
-    "packages/shared"
+    "packages/frontend"
   ],
   "scripts": {
-    "dev:all": "concurrently -n backend,blog,admin -c green,blue,magenta --kill-others-on-fail \"npm:dev --workspace=backend\" \"npm:dev --workspace=frontend-blog\" \"npm:dev --workspace=frontend-admin\"",
+    "dev:all": "concurrently -n backend,frontend -c green,blue --kill-others-on-fail \"npm:dev --workspace=backend\" \"npm:dev --workspace=frontend\"",
     "install:all": "npm install"
   },
   "repository": {
