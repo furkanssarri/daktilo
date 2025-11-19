@@ -13,7 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const BlogPost = () => {
   const { slug } = useParams();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const [post, setPost] = useState<PostWithRelations | null>(null);
   const [comments, setComments] = useState<FrontendComment[]>([]);
@@ -146,48 +146,52 @@ const BlogPost = () => {
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </Card>
 
-      <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={handleToggleLike}
-          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-            isLiked
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-          }`}
-        >
-          {isLiked ? "♥ Liked" : "♡ Like"}
-        </button>
-
-        {post?._count?.likes !== undefined && (
-          <span className="text-muted-foreground text-sm">
-            {post._count.likes} {post._count.likes === 1 ? "like" : "likes"}
-          </span>
-        )}
-      </div>
-
-      {/* Add Comment Section */}
-      <section className="mx-auto mt-16 max-w-3xl">
-        <h3 className="mb-4 text-xl font-semibold tracking-tight">
-          Add a Comment
-        </h3>
-
-        <Card className="border-border space-y-4 border bg-none p-6 shadow-sm">
-          <Textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Share your thoughts..."
-            className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          />
-          <div className="flex justify-end">
+      {isAuthenticated && (
+        <>
+          <div className="flex items-center justify-center gap-3">
             <button
-              onClick={handleAddComment}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              onClick={handleToggleLike}
+              className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                isLiked
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              }`}
             >
-              Post Comment
+              {isLiked ? "♥ Liked" : "♡ Like"}
             </button>
+
+            {post?._count?.likes !== undefined && (
+              <span className="text-muted-foreground text-sm">
+                {post._count.likes} {post._count.likes === 1 ? "like" : "likes"}
+              </span>
+            )}
           </div>
-        </Card>
-      </section>
+
+          {/* Add Comment Section */}
+          <section className="mx-auto mt-16 max-w-3xl">
+            <h3 className="mb-4 text-xl font-semibold tracking-tight">
+              Add a Comment
+            </h3>
+
+            <Card className="border-border space-y-4 border bg-none p-6 shadow-sm">
+              <Textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Share your thoughts..."
+                className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              />
+              <div className="flex justify-end">
+                <button
+                  onClick={handleAddComment}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+                >
+                  Post Comment
+                </button>
+              </div>
+            </Card>
+          </section>
+        </>
+      )}
       {/* Comments Section */}
       <section className="mx-auto mt-12 max-w-3xl space-y-8">
         <h2 className="text-2xl font-semibold tracking-tight">
