@@ -66,7 +66,7 @@ const Blog = () => {
                 <CardHeader>
                   <CardTitle>
                     <Link
-                      to={`/posts/id/${post.id}`}
+                      to={`/posts/slug/${post.slug}`}
                       className="hover:underline"
                     >
                       {post.title}
@@ -97,7 +97,7 @@ const Blog = () => {
                 className="flex w-full flex-row overflow-hidden transition-shadow duration-200 hover:shadow-md"
               >
                 <Link
-                  to={`/blog/${post.slug ?? post.id}`}
+                  to={`/posts/slug/${post.slug}`}
                   className="flex w-full flex-row text-inherit hover:no-underline"
                 >
                   {/* LEFT SIDE — TEXT CONTENT */}

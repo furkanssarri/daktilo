@@ -30,7 +30,7 @@ const router = createBrowserRouter([
 
       // Public blog routes
       { path: "blog", element: <Blog /> },
-      { path: "posts/id/:postId", element: <BlogPost /> },
+      { path: "posts/slug/:slug", element: <BlogPost /> },
 
       // Auth
       { path: "auth/signup", element: <Signup /> },
