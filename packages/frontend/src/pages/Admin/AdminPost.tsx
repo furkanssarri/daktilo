@@ -113,9 +113,7 @@ const AdminPost = () => {
 
       {/* Post Content Section */}
       <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Content</CardTitle>
-        </CardHeader>
+        <CardHeader>{/* <CardTitle>Content</CardTitle> */}</CardHeader>
         <CardContent>
           <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
             {post.content}
