@@ -96,7 +96,7 @@ function Navbar() {
                       {user && user.role === "USER" && (
                         <NavigationMenuLink asChild>
                           <Link
-                            to="/user/me"
+                            to="/users/me"
                             className={cn(
                               "hover:bg-muted block rounded-md px-3 py-2 text-sm transition-colors",
                               location.pathname === "/users/me" && "bg-muted",

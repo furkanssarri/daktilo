@@ -32,17 +32,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 type CommentCardProps = {
   comment: FrontendComment;
-  commentToEdit: FrontendComment | null;
-  setCommentToEdit: Dispatch<SetStateAction<FrontendComment | null>>;
-  editedContent: string;
-  setEditedContent: Dispatch<SetStateAction<string>>;
-  handleEditComment: () => Promise<void>;
-  handleDeleteComment: (commentId: string) => Promise<void>;
+  commentToEdit?: FrontendComment | null;
+  setCommentToEdit?: Dispatch<SetStateAction<FrontendComment | null>>;
+  editedContent?: string;
+  setEditedContent?: Dispatch<SetStateAction<string>>;
+  handleEditComment?: () => Promise<void>;
+  handleDeleteComment?: (commentId: string) => Promise<void>;
 };
 
 const CommentCard = ({
   comment,
-  commentToEdit,
+  commentToEdit = null,
   setCommentToEdit,
   editedContent,
   setEditedContent,
@@ -52,6 +52,14 @@ const CommentCard = ({
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const MAX_LENGTH = 120; // characters before truncation
+
+  const canEdit =
+    setCommentToEdit &&
+    setEditedContent &&
+    typeof editedContent === "string" &&
+    typeof handleEditComment === "function";
+
+  const canDelete = typeof handleDeleteComment === "function";
 
   const isLong = comment.content.length > MAX_LENGTH;
   const displayText = expanded
@@ -92,76 +100,82 @@ const CommentCard = ({
       </Card>
       {user?.id === comment.authorId && (
         <div className="flex justify-end gap-2">
-          <Dialog
-            open={commentToEdit?.id === comment.id}
-            onOpenChange={(open) => {
-              if (!open) {
-                setCommentToEdit(null);
-                setEditedContent("");
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setCommentToEdit(comment);
-                  setEditedContent(comment.content);
-                }}
-              >
-                Edit
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Comment</DialogTitle>
-                <DialogDescription>
-                  Update your comment below.
-                </DialogDescription>
-              </DialogHeader>
-
-              <Textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="border-input bg-background focus-visible:ring-ring min-h-[100px] w-full resize-none rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2"
-              />
-
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="secondary">Cancel</Button>
-                </DialogClose>
-                <Button onClick={handleEditComment}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this comment? This action
-                  cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => handleDeleteComment(comment.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          {canEdit && (
+            <Dialog
+              open={commentToEdit?.id === comment.id}
+              onOpenChange={(open) => {
+                if (!open && setCommentToEdit && setEditedContent) {
+                  setCommentToEdit(null);
+                  setEditedContent("");
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!canEdit) return;
+                    setCommentToEdit(comment);
+                    setEditedContent(comment.content);
+                  }}
                 >
+                  Edit
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Comment</DialogTitle>
+                  <DialogDescription>
+                    Update your comment below.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {canEdit && (
+                  <Textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                  />
+                )}
+
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="secondary">Cancel</Button>
+                  </DialogClose>
+                  <Button onClick={handleEditComment}>Save Changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
                   Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this comment? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDeleteComment?.(comment.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       )}
     </>
