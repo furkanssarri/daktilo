@@ -1,60 +1,67 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-// import CommentCard from "@/components/custom/CommentCard";
-// import type { Comment as CommentType } from "@prisma/client";
-// import { useEffect, useState } from "react";
-// import userApi from "@/api/userApi";
+import type { UserWithRelations, FrontendComment } from "@/types/EntityTypes";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import userApi from "@/api/userApi";
+import CommentCard from "@/components/layout/CommentCard";
 
 const Profile = () => {
-  // const [userComments, setUserComments] = useState<CommentType[] | []>([]);
+  const { isAuthenticated } = useAuth();
+  const [userData, setUserData] = useState<UserWithRelations | null>(null);
 
-  // useEffect(() => {
-  //   userApi
-  //     .getComments()
-  //     .then((data: CommentType[]) => setUserComments(data))
-  //     .catch((err) => console.error("Failed to fetch user comments: ", err));
-  // }, []);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const load = async () => {
+      try {
+        await userApi.getMe().then((data) => setUserData(data));
+      } catch (err) {
+        console.error("Failed to fetch the user: ", err);
+      }
+    };
+    load();
+  }, []);
 
-  // Example static user data
-  const user = {
-    name: "Furkan Sarı",
-    email: "furkan@example.com",
-    bio: "Frontend developer and writer passionate about clean UI, web performance, and modern design systems.",
-    joinedAt: "March 2024",
-    avatarUrl: "/assets/avatar-placeholder.jpg",
-  };
-
-  // Example static comments data
+  if (!userData) return <div>User not found.</div>;
   return (
-    <main className="flex flex-col items-center justify-center min-h-[80vh] px-6">
+    <main className="flex min-h-[80vh] flex-col items-center justify-center px-6">
       {/* Header */}
-      <section className="text-center mb-12 space-y-4">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+      <section className="mb-12 space-y-4 text-center">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Your Profile
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground mx-auto max-w-md">
           View and manage your account details and comments.
         </p>
       </section>
 
       {/* Profile Card */}
-      <Card className="w-full max-w-2xl p-8 shadow-sm border rounded-xl backdrop-blur-sm transition-all duration-300 hover:shadow-md mb-12">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-6 sm:space-y-0">
+      <Card className="mb-12 w-full max-w-2xl rounded-xl border p-8 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-md">
+        <div className="flex flex-col items-center space-y-6 sm:flex-row sm:items-start sm:space-y-0 sm:space-x-6">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarImage
+              src={userData.avatar?.url || undefined}
+              alt={userData.username || undefined}
+            />
+            <AvatarFallback>{userData?.username?.charAt(0)}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1 space-y-3 text-center sm:text-left">
-            <h2 className="text-2xl font-semibold">{user.name}</h2>
-            <p className="text-muted-foreground">{user.email}</p>
-            <p className="text-sm text-muted-foreground">{user.bio}</p>
-            <p className="text-xs text-muted-foreground">
-              Joined {user.joinedAt}
+            <h2 className="text-2xl font-semibold">
+              {userData.username || ""}
+            </h2>
+            <p className="text-muted-foreground">{userData.email}</p>
+            <p className="text-muted-foreground text-sm">
+              Some dummy static content that will soon be replaced with actualy
+              dynamic bio content for each user. For the time being, this text
+              will be act as a placeholder.
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Joined {new Date(userData.createdAt).toLocaleDateString("tr")}
             </p>
 
-            <div className="pt-4 flex justify-center sm:justify-start gap-3">
+            <div className="flex justify-center gap-3 pt-4 sm:justify-start">
               <Button variant="default">Edit Profile</Button>
               <Button variant="outline">Logout</Button>
             </div>
@@ -64,19 +71,19 @@ const Profile = () => {
 
       {/* My Comments Section */}
       <section className="w-full max-w-3xl space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight mb-2 text-center sm:text-left">
-          My Comments
+        <h2 className="mb-2 text-center text-2xl font-semibold tracking-tight sm:text-left">
+          My Comment Activity
         </h2>
 
-        {/* {userComments.length > 0 ? (
-          userComments.map((comment: CommentType) => (
+        {Array.isArray(userData.comments) && userData.comments.length > 0 ? (
+          userData.comments.map((comment: FrontendComment) => (
             <CommentCard key={comment.id} comment={comment} />
           ))
         ) : (
-          <p className="text-center text-muted-foreground">
+          <p className="text-muted-foreground text-center">
             You haven’t left any comments yet.
           </p>
-        )} */}
+        )}
       </section>
     </main>
   );

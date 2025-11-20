@@ -58,7 +58,6 @@ const BlogPost = () => {
       console.error("Failed to add comment: ", err);
       toast.error("Failed to add comment.");
     }
-    commentApi.create({ content: newComment, postId: post.id });
     setNewComment("");
   };
 
