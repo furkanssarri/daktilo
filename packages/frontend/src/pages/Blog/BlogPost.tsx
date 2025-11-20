@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import postApi from "@/api/postApi";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/sonner";
 import CommentCard from "@/components/layout/CommentCard";
 import type { FrontendComment, PostWithRelations } from "@/types/EntityTypes";
@@ -145,8 +145,13 @@ const BlogPost = () => {
       )}
 
       {/* Post Content */}
-      <Card className="prose dark:prose-invert mx-auto max-w-none px-4 py-10 leading-relaxed">
-        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+      <Card className="shadow-sm">
+        <CardHeader>{/* <CardTitle>Content</CardTitle> */}</CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {post.content}
+          </p>
+        </CardContent>
       </Card>
 
       {isAuthenticated && (
