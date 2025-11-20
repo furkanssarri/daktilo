@@ -1,6 +1,14 @@
-// packages/frontend-blog/src/components/layout/adminPanel/PostForm.tsx
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
+import {
+  Editor,
+  EditorState,
+  RichUtils,
+  convertToRaw,
+  ContentState,
+} from "draft-js";
+import "draft-js/dist/Draft.css";
 
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,6 +85,11 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   // keep file out of form values (files aren't serializable)
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [editorState, setEditorState] = useState(() =>
+    EditorState.createEmpty(),
+  );
+
+  const editorRef = useRef<Editor>(null);
 
   // build defaults from initialData but preserve your exact CreatePostFormData types
   const defaultValues: CreatePostFormData = {
@@ -136,9 +149,73 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
     }
   };
 
+  useEffect(() => {
+    if (isEdit && initialData?.content) {
+      const contentState = ContentState.createFromText(initialData.content);
+      setEditorState(EditorState.createWithContent(contentState));
+    }
+  }, [isEdit, initialData]);
+
   // wire SelectCategoryTag with RHF via watch + setValue
   const watchedCategoryId = form.watch("categoryId");
   const watchedTags = form.watch("tags");
+
+  const handleKeyCommand = (
+    command: string,
+    state: EditorState,
+  ): "handled" | "not-handled" => {
+    const newState = RichUtils.handleKeyCommand(
+      state,
+      command,
+    ) as EditorState | null;
+    if (newState) {
+      setEditorState(newState);
+
+      // convert editorState to plain text
+      const raw = convertToRaw(newState.getCurrentContent());
+      const plain = raw.blocks.map((b) => b.text).join("\n");
+      form.setValue("content", plain, { shouldValidate: true });
+
+      return "handled";
+    }
+    return "not-handled";
+  };
+
+  // Toolbar button handler
+  const toggleInlineStyle = (style: string) => {
+    const newState = RichUtils.toggleInlineStyle(editorState, style);
+    if (newState) {
+      setEditorState(newState);
+
+      // convert editorState to plain text
+      const raw = convertToRaw(newState.getCurrentContent());
+      const plain = raw.blocks.map((b) => b.text).join("\n");
+
+      // update RHF form value
+      form.setValue("content", plain, { shouldValidate: true });
+    }
+  };
+
+  // Helper to check if a style is currently active
+  const currentStyle = editorState.getCurrentInlineStyle();
+
+  // Updated helper function to toggle block type using latest editorState and focus editor
+  // const toggleBlockType = (blockType: string) => {
+  //   const newState = RichUtils.toggleBlockType(editorState, blockType);
+  //   if (newState) {
+  //     setEditorState(newState);
+
+  //     // convert editorState to plain text
+  //     const raw = convertToRaw(newState.getCurrentContent());
+  //     const plain = raw.blocks.map((b) => b.text).join("\n");
+  //     form.setValue("content", plain, { shouldValidate: true });
+
+  //     // focus the editor
+  //     if (editorRef.current) {
+  //       editorRef.current.focus();
+  //     }
+  //   }
+  // };
 
   return (
     <Card className="mx-auto max-w-3xl">
@@ -212,19 +289,88 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
             </div>
 
             {/* Content */}
-            <Controller
-              name="content"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea id="content" {...field} className="h-100" />
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+            <div className="space-y-2">
+              <Label>Content</Label>
+
+              <div className="mb-2 flex flex-wrap gap-2">
+                {/* Inline styles */}
+                <Button
+                  type="button"
+                  variant={currentStyle.has("BOLD") ? "default" : "outline"}
+                  onClick={() => toggleInlineStyle("BOLD")}
+                  size="sm"
+                >
+                  <strong>B</strong>
+                </Button>
+                <Button
+                  type="button"
+                  variant={currentStyle.has("ITALIC") ? "default" : "outline"}
+                  onClick={() => toggleInlineStyle("ITALIC")}
+                  size="sm"
+                >
+                  <em>I</em>
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    currentStyle.has("UNDERLINE") ? "default" : "outline"
+                  }
+                  onClick={() => toggleInlineStyle("UNDERLINE")}
+                  size="sm"
+                >
+                  <u>U</u>
+                </Button>
+
+                {/* Block types */}
+                {/* <Button
+                  type="button"
+                  onClick={() => toggleBlockType("header-one")}
+                  size="sm"
+                >
+                  H1
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => toggleBlockType("header-two")}
+                  size="sm"
+                >
+                  H2
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => toggleBlockType("blockquote")}
+                  size="sm"
+                >
+                  ❝ Blockquote
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => toggleBlockType("code-block")}
+                  size="sm"
+                >
+                  {"</> Code"}
+                </Button> */}
+              </div>
+
+              <div className="min-h-[200px] rounded border p-2">
+                <Editor
+                  ref={editorRef}
+                  editorState={editorState}
+                  onChange={(state: EditorState) => {
+                    setEditorState(state);
+
+                    const raw = convertToRaw(state.getCurrentContent());
+                    const plain = raw.blocks.map((b) => b.text).join("\n");
+                    form.setValue("content", plain, { shouldValidate: true });
+                  }}
+                  handleKeyCommand={handleKeyCommand}
+                />
+              </div>
+
+              {form.formState.errors.content && (
+                <FieldError errors={[form.formState.errors.content]} />
               )}
-            />
+            </div>
 
             {/* Category & Tags */}
             <div>

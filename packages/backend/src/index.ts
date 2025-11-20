@@ -22,7 +22,7 @@ const __dirname = path.resolve();
 const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:4173/",
-  "https://your-app-name.netlify.app",
+  "https://daktilo.netlify.app/",
 ];
 
 app.use(cors());
