@@ -9,6 +9,10 @@ A personal blog project built as part of The Odin Project fullstack curriculum. 
 - Use TypeScript end-to-end, Prisma for type-safe DB access, and modern React with Vite.
 - Create a full-fledged RESTful API between the frontend and the server.
 
+## Live Demo
+
+A working [live-demo](https://daktilo.netlify.app/) can be found here.
+
 ## Tech stack
 
 - Frontend: React (Vite), TypeScript, shadcn/ui, Tailwind CSS
