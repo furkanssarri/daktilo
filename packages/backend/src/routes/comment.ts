@@ -7,6 +7,8 @@ import {
   deleteCommentPublic,
 } from "../controllers/commentsController.js";
 import { requireAuth } from "../middlewares/requireAuth.js";
+import { createCommentValidator } from "../validators/commentValidator.js";
+import { validate } from "../middlewares/validate.js";
 
 const router = Router();
 
@@ -21,7 +23,13 @@ router.get("/", getCommentsPublic);
 router.get("/:id", getCommentPublic);
 
 // Create a new comment (must be logged in)
-router.post("/", requireAuth, createCommentPublic);
+router.post(
+  "/",
+  requireAuth,
+  createCommentValidator,
+  validate,
+  createCommentPublic,
+);
 
 // Update an existing comment (only owner can update)
 router.put("/:id", requireAuth, updateCommentPublic);

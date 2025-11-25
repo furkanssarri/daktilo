@@ -1,6 +1,10 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { ResponseJsonObject } from "../types/response.js";
+import {
+  loginValidator,
+  signupValidator,
+} from "../validators/authValidator.js";
+import { validate } from "../middlewares/validate.js";
 
 import {
   loginUser,
@@ -11,7 +15,7 @@ import { requireAuth } from "../middlewares/requireAuth.js";
 
 const router = Router();
 
-router.post("/signup", signup);
+router.post("/signup", signupValidator, validate, signup);
 
 router.get("/signup", (_req, res) => {
   res.json({
@@ -21,13 +25,8 @@ router.get("/signup", (_req, res) => {
 });
 
 router.post("/auth/refresh", refreshToken);
-router.post("/login", loginUser);
-// router.get("/login", (_req: Request, res: Response<ResponseJsonObject>) => {
-//   res.json({
-//     status: "success",
-//     message: "Welcome to the LOGIN page.",
-//   });
-// });
+router.post("/login", loginValidator, validate, loginUser);
+
 router.post("/logout", requireAuth, (_req: Request, res: Response) => {
   res.json({
     status: "success",

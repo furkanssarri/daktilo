@@ -14,6 +14,7 @@ import { buildQueryOptions } from "../utils/includeBuilder.js";
 import sendResponse from "../utils/responseUtil.js";
 import generateUniqueSlug from "../utils/generateSlug.js";
 import { PostUpdateRelationsInput } from "../types/BackendEntityTypes.js";
+import { sanitizePostInput } from "../utils/sanitize.js";
 
 type PostUpdateInput = Partial<
   Pick<PostType, "title" | "content" | "excerpt" | "imageId">
@@ -43,6 +44,7 @@ export const createNewPostAdmin = async (
     );
 
   const { title, content, excerpt, imageId, categoryId, tags } = req.body;
+  const sanitized = sanitizePostInput({ title, content, excerpt });
 
   if (Array.isArray(tags)) {
     req.body.tags = {
@@ -64,9 +66,9 @@ export const createNewPostAdmin = async (
   try {
     const newPost = await prisma.post.create({
       data: {
-        title,
-        content,
-        excerpt: excerpt ?? null,
+        title: sanitized.title,
+        content: sanitized.content,
+        excerpt: sanitized.excerpt ?? null,
         slug: slugifiedTitle,
         authorId: req.user.id,
 
@@ -116,15 +118,20 @@ export const updatePostAdmin = async (
 ) => {
   const { slug } = req.params;
   const updates: PostUpdatePayload = req.body;
+  const sanitized = sanitizePostInput({
+    title: updates.title ?? "",
+    content: updates.content ?? "",
+    excerpt: updates.excerpt ?? null,
+  });
 
   if (!slug)
     return sendResponse(res, "error", "Missing post slug.", undefined, 400);
 
   try {
     const update: any = {
-      title: updates.title,
-      content: updates.content,
-      excerpt: updates.excerpt,
+      title: sanitized.title,
+      content: sanitized.content,
+      excerpt: sanitized.excerpt,
     };
 
     // -------- IMAGE RELATION FIX --------
