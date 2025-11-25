@@ -1,77 +1,177 @@
-const Contact = () => {
-  return (
-    <div className="space-y-24 border rounded-sm mt-5">
-      {/* Intro Section */}
-      <section className="max-w-3xl mx-auto text-center pt-16 pb-24 px-6">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-6">Let’s Connect</h1>
-        <p className="text-muted-foreground leading-relaxed mb-8">
-          I’d love to hear from you — whether you have a question, a project
-          idea, or just want to chat about web development. Feel free to drop me
-          a message anytime!
-        </p>
+import { useState } from "react";
+import contactApi from "@/api/contactApi";
 
-        {/* Contact Details */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-6 text-lg">
-          <a
-            href="mailto:furkan@example.com"
-            className="text-primary hover:underline"
-          >
-            furkan@example.com
-          </a>
-          <span className="hidden sm:block text-muted-foreground">•</span>
-          <div className="flex gap-4">
-            <a
-              href="https://github.com/furkansari"
-              target="_blank"
-              rel="noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-            <a
-              href="https://linkedin.com/in/furkansari"
-              target="_blank"
-              rel="noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              LinkedIn
-            </a>
-          </div>
-        </div>
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+
+import {
+  Field,
+  FieldGroup,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  contactSchema,
+  type ContactFormValues,
+} from "@/validators/authValidators";
+
+const Contact = () => {
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [success, setSuccess] = useState("");
+
+  const form = useForm<ContactFormValues>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      message: "",
+    },
+    mode: "onTouched",
+  });
+
+  const onSubmit = async (values: ContactFormValues) => {
+    setServerError(null);
+    setSuccess("");
+
+    try {
+      const res = await contactApi.sendMessage(values);
+
+      if (res.status === "success") {
+        setSuccess("Your message has been sent! Thank you ♥");
+        toast.success("Your message has been sent!");
+        form.reset();
+      } else {
+        setServerError(res.message || "Something went wrong.");
+        toast.error(res.message || "Something went wrong.");
+      }
+    } catch (err: unknown) {
+      console.error("Contact form error:", err);
+      const message =
+        err instanceof Error ? err.message : "Unexpected error occurred";
+      setServerError(message);
+      toast.error(message);
+    }
+  };
+
+  return (
+    <div className="mt-5 space-y-24">
+      {/* Intro Section */}
+      <section className="mx-auto max-w-3xl px-6 pt-16 pb-10 text-center">
+        <h1 className="mb-6 text-4xl font-bold sm:text-5xl">Let’s Connect</h1>
+        <p className="text-muted-foreground mb-8 leading-relaxed">
+          I’d love to hear from you — whether you have a question, a project
+          idea, or just want to chat about web development.
+        </p>
       </section>
 
-      {/* Contact Form */}
-      <section className="max-w-2xl mx-auto px-6 pb-24">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          Send a Message
-        </h2>
+      {/* Contact Card */}
+      <section className="mx-auto max-w-2xl px-6 pb-24">
+        <Card className="rounded-xl border p-6 shadow-sm backdrop-blur-sm transition-all hover:shadow-md">
+          <CardHeader>
+            <CardTitle>Send a Message</CardTitle>
+            <CardDescription>
+              I'll get back to you as soon as possible.
+            </CardDescription>
+          </CardHeader>
 
-        <form className="flex flex-col space-y-5">
-          <input
-            type="text"
-            name="name"
-            placeholder="Your name"
-            className="border rounded-md p-3 bg-background focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Your email"
-            className="border rounded-md p-3 bg-background focus:ring-2 focus:ring-primary outline-none"
-          />
-          <textarea
-            name="message"
-            rows={5}
-            placeholder="Your message"
-            className="border rounded-md p-3 bg-background focus:ring-2 focus:ring-primary outline-none"
-          ></textarea>
-          <button
-            type="submit"
-            className="bg-primary text-primary-foreground font-medium py-3 rounded-md hover:opacity-90 transition-opacity"
-          >
-            Send Message
-          </button>
-        </form>
+          <CardContent>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col space-y-6"
+              noValidate
+            >
+              <FieldGroup>
+                {/* Name */}
+                <Controller
+                  name="name"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="contact-name">Name</FieldLabel>
+                      <Input
+                        {...field}
+                        id="contact-name"
+                        placeholder="Your name"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Email */}
+                <Controller
+                  name="email"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="contact-email">Email</FieldLabel>
+                      <Input
+                        {...field}
+                        id="contact-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+
+                {/* Message */}
+                <Controller
+                  name="message"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="contact-message">Message</FieldLabel>
+                      <textarea
+                        {...field}
+                        id="contact-message"
+                        rows={6}
+                        placeholder="Your message..."
+                        className="bg-background focus:ring-primary rounded-md border p-3 outline-none focus:ring-2"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
+
+              {/* Server Feedback */}
+              {serverError && (
+                <p className="text-sm text-red-500">{serverError}</p>
+              )}
+              {success && <p className="text-sm text-green-500">{success}</p>}
+
+              <Button
+                type="submit"
+                className="bg-primary text-primary-foreground w-full rounded-md py-3 font-medium hover:opacity-90"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? "Sending..." : "Send Message"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

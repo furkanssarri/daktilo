@@ -15,3 +15,18 @@ export const loginSchema = z.object({
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
+
+// -------------------- ZOD SCHEMA --------------------
+export const contactSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name cannot exceed 50 characters"),
+  email: z.string().email("Please enter a valid email"),
+  message: z
+    .string()
+    .min(10, "Message must be at least 10 characters")
+    .max(2000, "Message cannot exceed 2000 characters"),
+});
+
+export type ContactFormValues = z.infer<typeof contactSchema>;

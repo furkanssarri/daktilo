@@ -14,6 +14,7 @@ import postsRouter from "./routes/posts.js";
 import categoryRouter from "./routes/category.js";
 import tagsRouter from "./routes/tags.js";
 import commentsRouter from "./routes/comment.js";
+import contactRouter from "./routes/contact.js";
 import path from "node:path";
 
 const app = express();
@@ -40,6 +41,7 @@ app.use(passport.initialize());
 
 app.use("/api/auth", authRouter);
 
+app.use("/api/contact", contactRouter);
 app.use("/api/comments", requireAuth, commentsRouter);
 app.use("/api/tags", tagsRouter);
 app.use("/api/categories", categoryRouter);
