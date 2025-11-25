@@ -21,11 +21,11 @@ export default function StartupGate({
       const timeout = setTimeout(() => {
         controller.abort();
         setError(true);
-      }, 25000); // 25s timeout before showing retry
+      }, 60000); // 25s timeout before showing retry
 
       // Progress animation (purely visual)
       const interval = setInterval(() => {
-        setProgress((p) => Math.min(p + Math.random() * 8, 95));
+        setProgress((p) => Math.min(p + 0.7 + Math.random() * 0.2, 95));
       }, 500);
 
       await fetch(import.meta.env.VITE_API_BASE_URL + "/health", {
