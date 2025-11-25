@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
+import sanitizeHtml from "sanitize-html";
 import {
   Editor,
   EditorState,
@@ -15,7 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Input } from "@/components/ui/input";
-// import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,15 +39,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-
-// type SchemaOutput = z.infer<typeof postSchema>;
-
-// // This checks compatibility without mutating the Zod type
-// type _Check = SchemaOutput extends CreatePostFormData
-//   ? CreatePostFormData extends SchemaOutput
-//     ? true
-//     : never
-//   : never;
 
 /**
  * Validation schema.
@@ -174,7 +164,11 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
       // convert editorState to plain text
       const raw = convertToRaw(newState.getCurrentContent());
       const plain = raw.blocks.map((b) => b.text).join("\n");
-      form.setValue("content", plain, { shouldValidate: true });
+      const sanitized = sanitizeHtml(plain, {
+        allowedTags: [],
+        allowedAttributes: {},
+      });
+      form.setValue("content", sanitized, { shouldValidate: true });
 
       return "handled";
     }
@@ -198,24 +192,6 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
 
   // Helper to check if a style is currently active
   const currentStyle = editorState.getCurrentInlineStyle();
-
-  // Updated helper function to toggle block type using latest editorState and focus editor
-  // const toggleBlockType = (blockType: string) => {
-  //   const newState = RichUtils.toggleBlockType(editorState, blockType);
-  //   if (newState) {
-  //     setEditorState(newState);
-
-  //     // convert editorState to plain text
-  //     const raw = convertToRaw(newState.getCurrentContent());
-  //     const plain = raw.blocks.map((b) => b.text).join("\n");
-  //     form.setValue("content", plain, { shouldValidate: true });
-
-  //     // focus the editor
-  //     if (editorRef.current) {
-  //       editorRef.current.focus();
-  //     }
-  //   }
-  // };
 
   return (
     <Card className="mx-auto max-w-3xl">
@@ -320,38 +296,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
                 >
                   <u>U</u>
                 </Button>
-
-                {/* Block types */}
-                {/* <Button
-                  type="button"
-                  onClick={() => toggleBlockType("header-one")}
-                  size="sm"
-                >
-                  H1
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => toggleBlockType("header-two")}
-                  size="sm"
-                >
-                  H2
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => toggleBlockType("blockquote")}
-                  size="sm"
-                >
-                  ❝ Blockquote
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => toggleBlockType("code-block")}
-                  size="sm"
-                >
-                  {"</> Code"}
-                </Button> */}
               </div>
-
               <div className="min-h-[200px] rounded border p-2">
                 <Editor
                   ref={editorRef}

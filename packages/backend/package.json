@@ -27,12 +27,14 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-validator": "^7.3.1",
     "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "rimraf": "^6.1.0",
+    "sanitize-html": "^2.17.0",
     "slug": "^11.0.1"
   },
   "devDependencies": {
@@ -45,6 +47,7 @@
     "@types/node": "^24.9.2",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/sanitize-html": "^2.16.0",
     "@types/slug": "^5.0.9",
     "jest": "^30.2.0",
     "prisma": "^6.19.0",

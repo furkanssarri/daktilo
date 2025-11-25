@@ -45,7 +45,6 @@ const BlogPost = () => {
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !post) return;
-    console.log("Submitting comment: ", newComment);
     try {
       const created = await commentApi.create({
         content: newComment,
