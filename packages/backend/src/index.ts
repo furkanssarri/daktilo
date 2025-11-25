@@ -39,6 +39,10 @@ app.use(express.static("public"));
 
 app.use(passport.initialize());
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use("/api/auth", authRouter);
 
 app.use("/api/contact", contactRouter);
