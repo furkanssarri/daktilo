@@ -19,10 +19,31 @@ import { Separator } from "@/components/ui/separator";
 import type { Category as CategoryType, Tag as TagType } from "@prisma/client";
 import categoryApi from "@/api/categoryApi";
 import tagApi from "@/api/tagApi";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+
+import { Input } from "@/components/ui/input";
+
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { categorySchema, tagSchema } from "@/validators/authValidators";
+
+import type {
+  CategoryFormValues,
+  TagFormValues,
+} from "@/validators/authValidators";
+import adminCategoriesApi from "@/api/adminApi/adminCategoriesApi";
+import adminTagApi from "@/api/adminApi/adminTagsApi";
 
 interface SelectCategoryTagProps {
   // categories: CategoryType[];
   // tags: TagType[];
+  refreshKey: number;
+  onRefresh: () => void;
   selectedCategory: string | null | undefined;
   selectedTags?: TagType[];
   onCategoryChange?: (categoryId: string | null) => void;
@@ -30,6 +51,8 @@ interface SelectCategoryTagProps {
 }
 
 const SelectCategoryTag = ({
+  refreshKey,
+  onRefresh,
   selectedCategory,
   selectedTags,
   onCategoryChange,
@@ -57,14 +80,48 @@ const SelectCategoryTag = ({
       .getAll()
       .then((data) => setCategories(data))
       .catch((err) => console.error("Failed to fetch categories: ", err));
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     tagApi
       .getAll()
       .then((data) => setTags(data))
       .catch((err) => console.error("Failed to fetch tags: ", err));
-  }, []);
+  }, [refreshKey]);
+
+  const categoryForm = useForm({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: "" },
+  });
+
+  const tagForm = useForm({
+    resolver: zodResolver(tagSchema),
+    defaultValues: { name: "" },
+  });
+
+  const handleCategorySubmit = async (values: CategoryFormValues) => {
+    try {
+      const newCategory = await adminCategoriesApi.create({
+        name: values.name,
+      });
+      setCategories((prev) => [...prev, newCategory]);
+      categoryForm.reset();
+      onRefresh?.();
+    } catch (err) {
+      console.error("Failed to add category:", err);
+    }
+  };
+
+  const handleTagSubmit = async (values: TagFormValues) => {
+    try {
+      const newTag = await adminTagApi.create({ name: values.name });
+      setTags((prev) => [...prev, newTag]);
+      tagForm.reset();
+      onRefresh?.();
+    } catch (err) {
+      console.error("Failed to add tag:", err);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -174,6 +231,80 @@ const SelectCategoryTag = ({
             </Command>
           </PopoverContent>
         </Popover>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Add Category</h3>
+          <div className="space-y-4">
+            <FieldGroup>
+              <Controller
+                name="name"
+                control={categoryForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Category Name</FieldLabel>
+                    <Input
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      placeholder="e.g. Technology"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+
+            <Button
+              type="button"
+              disabled={categoryForm.formState.isSubmitting}
+              onClick={categoryForm.handleSubmit(handleCategorySubmit)}
+            >
+              {categoryForm.formState.isSubmitting
+                ? "Adding..."
+                : "Add Category"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">Add Tag</h3>
+          <div className="space-y-4">
+            <FieldGroup>
+              <Controller
+                name="name"
+                control={tagForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Tag Name</FieldLabel>
+                    <Input
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      placeholder="e.g. Javascript"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+
+            <Button
+              type="button"
+              disabled={tagForm.formState.isSubmitting}
+              onClick={tagForm.handleSubmit(handleTagSubmit)}
+            >
+              {categoryForm.formState.isSubmitting
+                ? "Adding..."
+                : "Add Category"}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

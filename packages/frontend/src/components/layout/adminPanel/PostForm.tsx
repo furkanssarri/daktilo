@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import sanitizeHtml from "sanitize-html";
 import {
   Editor,
   EditorState,
@@ -75,11 +74,16 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
   // keep file out of form values (files aren't serializable)
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty(),
   );
 
   const editorRef = useRef<Editor>(null);
+
+  const refreshCategoryTagData = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   // build defaults from initialData but preserve your exact CreatePostFormData types
   const defaultValues: CreatePostFormData = {
@@ -164,11 +168,7 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
       // convert editorState to plain text
       const raw = convertToRaw(newState.getCurrentContent());
       const plain = raw.blocks.map((b) => b.text).join("\n");
-      const sanitized = sanitizeHtml(plain, {
-        allowedTags: [],
-        allowedAttributes: {},
-      });
-      form.setValue("content", sanitized, { shouldValidate: true });
+      form.setValue("content", plain, { shouldValidate: true });
 
       return "handled";
     }
@@ -320,6 +320,8 @@ const PostForm = ({ mode, initialData }: PostFormProps) => {
             {/* Category & Tags */}
             <div>
               <SelectCategoryTag
+                refreshKey={refreshKey}
+                onRefresh={refreshCategoryTagData}
                 selectedCategory={watchedCategoryId ?? null}
                 selectedTags={watchedTags ?? []}
                 onCategoryChange={(categoryId) =>

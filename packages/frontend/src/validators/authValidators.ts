@@ -16,7 +16,6 @@ export const loginSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
-// -------------------- ZOD SCHEMA --------------------
 export const contactSchema = z.object({
   name: z
     .string()
@@ -30,3 +29,21 @@ export const contactSchema = z.object({
 });
 
 export type ContactFormValues = z.infer<typeof contactSchema>;
+
+export const categorySchema = z.object({
+  name: z
+    .string()
+    .min(2, "Category name must be at least 2 characters.")
+    .max(30, "Category name must be at most 30 characters."),
+});
+
+export type CategoryFormValues = z.infer<typeof categorySchema>;
+
+export const tagSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Tag name must be at least 2 characters.")
+    .max(30, "Tag name must be at most 30 characters."),
+});
+
+export type TagFormValues = z.infer<typeof tagSchema>;
