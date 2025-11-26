@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Settings, Smile, User } from "lucide-react";
+import { Smile, User } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,7 +8,6 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command";
 import type { SearchResult } from "@/types/EntityTypes";
 import { searchApi } from "@/api/searchApi";
@@ -87,8 +86,10 @@ const CommandPalette = ({
   };
 
   const handleStaticSelect = (item: string) => {
-    setOpen(false);
-    navigate(`/users/me`);
+    if (item) {
+      setOpen(false);
+      navigate(`/users/me`);
+    }
   };
 
   return (
