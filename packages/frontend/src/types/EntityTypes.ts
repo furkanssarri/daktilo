@@ -33,3 +33,35 @@ export type UserWithRelations = Prisma.UserGetPayload<{
 export type FrontendComment = CommentType & {
   author?: { id: string; username: string; avatar: string | null };
 };
+
+export interface PostSearchResult {
+  type: "post";
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+}
+
+export interface TagSearchResult {
+  type: "tag";
+  id: string;
+  name: string;
+}
+
+export interface CategorySearchResult {
+  type: "category";
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+export type SearchResult =
+  | PostSearchResult
+  | TagSearchResult
+  | CategorySearchResult;
+
+export interface ResponseJsonObject<T> {
+  status: "success" | "error";
+  message: string;
+  data?: T;
+}
