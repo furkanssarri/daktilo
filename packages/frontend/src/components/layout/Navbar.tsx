@@ -20,7 +20,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import CommandPalette from "@/components/custom/CommandPalette";
+import CommandPaletteTrigger from "@/components/custom/CommandPaletteTrigger";
 
 function Navbar() {
   const location = useLocation();
@@ -147,13 +147,13 @@ function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <CommandPalette />
+        <CommandPaletteTrigger />
         <ModeToggle />
       </div>
 
       {/* Mobile nav */}
       <div className="flex items-center gap-2 md:hidden">
-        <CommandPalette />
+        <CommandPaletteTrigger />
         <ModeToggle />
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>

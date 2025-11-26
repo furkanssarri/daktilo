@@ -15,6 +15,8 @@ import categoryRouter from "./routes/category.js";
 import tagsRouter from "./routes/tags.js";
 import commentsRouter from "./routes/comment.js";
 import contactRouter from "./routes/contact.js";
+import searchRouter from "./routes/search.js";
+
 import path from "node:path";
 
 const app = express();
@@ -52,6 +54,7 @@ app.use("/api/categories", categoryRouter);
 app.use("/api/posts", postsRouter);
 app.use("/api/users", requireAuth, requireRole("ADMIN", "USER"), usersRouter);
 app.use("/api/admin", requireAuth, requireRole("ADMIN"), adminRouter);
+app.use("/api/search", searchRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (err) => {
